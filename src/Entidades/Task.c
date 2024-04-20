@@ -28,7 +28,7 @@ Task * create_Task(int id, short amount_programs, char ** path_to_programs, shor
     x->programs = malloc(sizeof(Prog *) * amount_programs);
     x->amount_programs = amount_programs;
 
-    for(int i = 0; i < amount_args; i++)
+    for(int i = 0; i < amount_programs; i++)
     x->programs[i] = create_Prog(path_to_programs[i],amount_args[i],args[i]);
 
     x->status = SCHEDULED;
@@ -48,20 +48,24 @@ void execute_Task(Task * x){
 
         char * filename = malloc(sizeof(char) * 128);
         sprintf(filename, "output_folder/%d.bin", x->id);
+        int errors = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
         
-        freopen(filename, "w", stdout);
-        freopen(filename, "w", stderr);
+        snprintf(filename,128,"output_folder/done_tasks.bin");
+        int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
-       
-       
-        int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        write(fd, x, sizeof(Task));
 
+
+
+    dup2(errors, STDOUT_FILENO);
+    dup2(errors, STDERR_FILENO);
 
 
         for(int i = 0; i < x->amount_programs; i++)
         execute_Prog(x->programs[i]);
 
+
+        close(errors);
+        free(filename);
 
 
         struct timeval current_time;
@@ -72,39 +76,50 @@ void execute_Task(Task * x){
 
             x->status = COMPLETED;
 
-            lseek(fd, 0, SEEK_SET);
-            write(fd, x, sizeof(Task));
-            
-
-
-        close(fd);
-        free(filename);
+            lseek(done, 0, SEEK_END);
+            write(done, x, sizeof(Task));
 }
-Task * read_Task_from_ID(int id) {
+Task **get_Tasks() {
+    
+    int fd = open("output_folder/done.bin", O_RDONLY | O_CREAT);
 
-    const char *filename;
-    asprintf(&filename, "%d.bin", id);
+    lseek(fd, 0, SEEK_SET);
 
-    int fd = open(filename, O_RDONLY);
+    Task ** list_of_tasks = NULL;
+    
 
-    free(filename);
+    Task *task = malloc(sizeof(Task));
 
+    for(int num_tasks = 0; read(fd, task, sizeof(Task)) > 0; num_tasks++) {
+        list_of_tasks = realloc(list_of_tasks, (num_tasks + 1) * sizeof(Task *));
+        if (list_of_tasks == NULL) {
+            perror("Ficheiro bem mid ngl");
+            close(fd);
+            return NULL;
+        }
 
-    if (fd == -1) {
-        perror("O ficheiro não existe");
-        exit(EXIT_FAILURE);
+        task = malloc(sizeof(Task));
+        if (task == NULL) {
+            perror("Oops, task vazia :v");
+            close(fd);
+            free_tasks(list_of_tasks, num_tasks);
+            return NULL;
+        }
+
+        list_of_tasks[num_tasks] = task;
     }
 
-    Task * x = malloc(sizeof(Task));
-    read(fd, x, sizeof(Task));
-    close(fd);
 
-    return x;
+    close(fd);
+    free(task);
+
+    return list_of_tasks;
 }
+
 void print_Task_status(Task *x){
     printf("%d",x->id);
 
-    printf(" %s", x->programs[0]);
+    printf(" %s", x->programs[0]->path_to_program);
     
     for (int i = 1; i < x->amount_programs; ++i) 
     printf(" | %s", x->programs[i]->path_to_program);
@@ -113,7 +128,7 @@ void print_Task_status(Task *x){
         double ms = x->real_duration.tv_sec * 1000;
         ms += x->real_duration.tv_usec / 1000;
    
-        printf("%d ms", ms);
+        printf(" %d ms", ms);
     }
 
     printf("\n");

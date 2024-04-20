@@ -35,6 +35,6 @@ Task * create_Task(int id, short amount_programs, char ** path_to_programs, shor
 void destroy_Task(Task *Task);
 void execute_Task(Task *Task);
 void print_Task_status(Task *Task);
-Task * read_Task_from_ID(int id);
+Task **get_Tasks();
 
 #endif
