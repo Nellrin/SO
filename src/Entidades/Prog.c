@@ -23,13 +23,14 @@ Prog * create_Prog(char * path_to_program, short amount_args, char ** args){
     x->args = malloc(sizeof(char *) * amount_args);
 
     for(int i = 0; i < amount_args; i++)
-    x->args[i] = args[i];
+    x->args[i] = strdup(args[i]);
 
     return x;
 }
 void execute_Prog(Prog * x){
 
     pid_t pid = fork();
+    int status;
 
     if(pid == -1){
         perror("O garfo não garfou");
@@ -39,12 +40,8 @@ void execute_Prog(Prog * x){
     else if(pid == 0)
     execvp(x->path_to_program, x->args);
     
-    else{
-        int status;
-        waitpid(pid, &status, 0);
-
-        if(WIFEXITED(status));
-    }
+    else
+    waitpid(pid, &status, 0);
 
 }
 void destroy_Prog(Prog * x){
