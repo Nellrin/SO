@@ -2,7 +2,6 @@
 struct timeval;
 
 #include "../../include/Entidades/Prog.h"
-typedef struct Prog;
 
 
 

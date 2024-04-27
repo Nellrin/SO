@@ -47,24 +47,22 @@ void execute_Task(Task * x){
     gettimeofday(&(x->start_time), NULL);
 
         char * filename = malloc(sizeof(char) * 128);
-        sprintf(filename, "output_folder/%d.bin", x->id);
-        int errors = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        sprintf(filename, "output_folder/%d.txt", x->id);
+        int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
         
         snprintf(filename,128,"output_folder/done_tasks.bin");
         int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
 
-
-
-    dup2(errors, STDOUT_FILENO);
-    dup2(errors, STDERR_FILENO);
+    dup2(output, STDOUT_FILENO);
+    dup2(output, STDERR_FILENO);
 
 
         for(int i = 0; i < x->amount_programs; i++)
         execute_Prog(x->programs[i]);
 
 
-        close(errors);
+        close(output);
         free(filename);
 
 
@@ -99,13 +97,6 @@ Task **get_Tasks() {
         }
 
         task = malloc(sizeof(Task));
-        if (task == NULL) {
-            perror("Oops, task vazia :v");
-            close(fd);
-            free_tasks(list_of_tasks, num_tasks);
-            return NULL;
-        }
-
         list_of_tasks[num_tasks] = task;
     }
 
@@ -117,19 +108,20 @@ Task **get_Tasks() {
 }
 
 void print_Task_status(Task *x){
-    printf("%d",x->id);
+    char * lista = malloc(sizeof(char) * 2048 * 4);
+    snprintf(lista,2048*4,"%d %s", x->id, x->programs[0]->path_to_program);
 
-    printf(" %s", x->programs[0]->path_to_program);
-    
     for (int i = 1; i < x->amount_programs; ++i) 
-    printf(" | %s", x->programs[i]->path_to_program);
-    
+    sprintf(lista," | %s", x->programs[i]->path_to_program);
+
     if(x->status == COMPLETED){
         double ms = x->real_duration.tv_sec * 1000;
         ms += x->real_duration.tv_usec / 1000;
    
-        printf(" %d ms", ms);
+        sprintf(lista," %d ms", (int) ms);
     }
 
-    printf("\n");
+    sprintf(lista," \n");
+
+    write(STDOUT_FILENO, lista, strlen(lista));
 }
