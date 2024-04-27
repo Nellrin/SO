@@ -61,12 +61,8 @@ int main(int argc, char* argv[]){
                     // Task *newTask = create_Task(0, amount_programs, path_to_programs, amount_args, args, argv[2]);
                     printf("listo\n");
 
-                    for(int i = 0; i < newTask->amount_programs; i++){
-                        printf("\n[Programa] %s\n", newTask->programs[i]->path_to_program);
 
-                        for(int j = 0; j < newTask->programs[i]->amount_args; j++)
-                        printf("[Argumento %d] %s\n",j + 1, newTask->programs[i]->args[j]);
-                    }
+                    print_task_debug(newTask);
 
                     
 

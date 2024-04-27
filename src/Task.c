@@ -124,3 +124,60 @@ void print_Task_status(Task *x){
 
     write(STDOUT_FILENO, lista, strlen(lista));
 }
+
+
+/*
+typedef struct {
+    int id;
+    
+    short amount_programs; 
+    Prog ** programs;
+        
+    struct timeval estimated_duration;
+    struct timeval real_duration;
+    struct timeval start_time;
+
+    Task_Status status;
+} Task;
+
+typedef struct {
+    char * path_to_program;
+    
+    short amount_args;
+    char ** args;
+} Prog;
+*/
+void print_task_debug(Task * x){
+    printf("\n\n──────────────────────────────────\n");
+    printf("[TASK %03d]\n",x->id);
+    printf("(%d) PROGRAMS\n",x->amount_programs);
+
+    for(int i = 0; i < x->amount_programs; i++){
+        printf("\n    +──────────────────────────────────\n");
+
+        printf("    |%s (%d)\n    |\n",x->programs[i]->path_to_program, x->programs[i]->amount_args);
+        for(int j = 0; j < x->programs[i]->amount_args; j++)
+        printf("    |%s\n",x->programs[i]->args[j]);
+
+        printf("    +──────────────────────────────────\n");
+    }
+
+    printf("\nSTATUS: ");
+    switch (x->status){
+    case COMPLETED:
+        printf("COMPLETE\n");
+        break;
+
+    case EXECUTING:
+        printf("EXECUTING\n");
+        break;
+
+    case SCHEDULED:
+        printf("SCHEDULED\n");
+        break;
+    
+    default:
+        break;
+    }
+    printf("──────────────────────────────────\n");
+}
