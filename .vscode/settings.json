@@ -10,6 +10,9 @@
         "prog.h": "c",
         "stdio.h": "c",
         "wait.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "auxiliares.h": "c",
+        "client.h": "c",
+        "stat.h": "c"
     }
 }

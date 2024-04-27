@@ -1,13 +1,13 @@
+#ifndef TASK_H
+#define TASK_H
+
 #include <sys/time.h>
 struct timeval;
 
-#include "../../include/Entidades/Prog.h"
-typedef struct Prog;
+#include "Prog.h"
 
 
 
-#ifndef TASK_H
-#define TASK_H
 
 
 typedef enum {
@@ -36,5 +36,5 @@ void destroy_Task(Task *Task);
 void execute_Task(Task *Task);
 void print_Task_status(Task *Task);
 Task **get_Tasks();
-
+void print_task_debug(Task * x);
 #endif

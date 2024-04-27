@@ -1,5 +1,3 @@
-#include "../../include/Entidades/Task.h"
-#include "../../include/Entidades/Prog.h"
 
 
 #include <stdio.h>
@@ -11,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "../include/Task.h"
 
 Task * create_Task(int id, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
@@ -47,24 +46,22 @@ void execute_Task(Task * x){
     gettimeofday(&(x->start_time), NULL);
 
         char * filename = malloc(sizeof(char) * 128);
-        sprintf(filename, "output_folder/%d.bin", x->id);
-        int errors = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        sprintf(filename, "output_folder/%d.txt", x->id);
+        int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
         
         snprintf(filename,128,"output_folder/done_tasks.bin");
         int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
 
-
-
-    dup2(errors, STDOUT_FILENO);
-    dup2(errors, STDERR_FILENO);
+    dup2(output, STDOUT_FILENO);
+    dup2(output, STDERR_FILENO);
 
 
         for(int i = 0; i < x->amount_programs; i++)
         execute_Prog(x->programs[i]);
 
 
-        close(errors);
+        close(output);
         free(filename);
 
 
@@ -99,13 +96,6 @@ Task **get_Tasks() {
         }
 
         task = malloc(sizeof(Task));
-        if (task == NULL) {
-            perror("Oops, task vazia :v");
-            close(fd);
-            free_tasks(list_of_tasks, num_tasks);
-            return NULL;
-        }
-
         list_of_tasks[num_tasks] = task;
     }
 
@@ -117,19 +107,77 @@ Task **get_Tasks() {
 }
 
 void print_Task_status(Task *x){
-    printf("%d",x->id);
+    char * lista = malloc(sizeof(char) * 2048 * 4);
+    snprintf(lista,2048*4,"%d %s", x->id, x->programs[0]->path_to_program);
 
-    printf(" %s", x->programs[0]->path_to_program);
-    
     for (int i = 1; i < x->amount_programs; ++i) 
-    printf(" | %s", x->programs[i]->path_to_program);
-    
+    sprintf(lista," | %s", x->programs[i]->path_to_program);
+
     if(x->status == COMPLETED){
         double ms = x->real_duration.tv_sec * 1000;
         ms += x->real_duration.tv_usec / 1000;
    
-        printf(" %d ms", ms);
+        sprintf(lista," %d ms", (int) ms);
     }
 
-    printf("\n");
+    sprintf(lista," \n");
+
+    write(STDOUT_FILENO, lista, strlen(lista));
+}
+
+
+/*
+typedef struct {
+    int id;
+    
+    short amount_programs; 
+    Prog ** programs;
+        
+    struct timeval estimated_duration;
+    struct timeval real_duration;
+    struct timeval start_time;
+
+    Task_Status status;
+} Task;
+
+typedef struct {
+    char * path_to_program;
+    
+    short amount_args;
+    char ** args;
+} Prog;
+*/
+void print_task_debug(Task * x){
+    printf("\n\n──────────────────────────────────\n");
+    printf("[TASK %03d]\n",x->id);
+    printf("(%d) PROGRAMS\n",x->amount_programs);
+
+    for(int i = 0; i < x->amount_programs; i++){
+        printf("\n    +──────────────────────────────────\n");
+
+        printf("    |%s (%d)\n    |\n",x->programs[i]->path_to_program, x->programs[i]->amount_args);
+        for(int j = 0; j < x->programs[i]->amount_args; j++)
+        printf("    |%s\n",x->programs[i]->args[j]);
+
+        printf("    +──────────────────────────────────\n");
+    }
+
+    printf("\nSTATUS: ");
+    switch (x->status){
+    case COMPLETED:
+        printf("COMPLETE\n");
+        break;
+
+    case EXECUTING:
+        printf("EXECUTING\n");
+        break;
+
+    case SCHEDULED:
+        printf("SCHEDULED\n");
+        break;
+    
+    default:
+        break;
+    }
+    printf("──────────────────────────────────\n");
 }
