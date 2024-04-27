@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
                     //printf("Es -u\n");
 
                     short amount_programs;
-                    short* amount_args;
+                    short* amount_args = malloc(sizeof(short *));
                     char** path_to_programs;
                     char*** args;
 
