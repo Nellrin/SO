@@ -1,3 +1,10 @@
+#include "../include/Auxiliares.h"
+#include "../include/client.h"
+#include "../include/Task.h"
+#include "../include/Prog.h"
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -7,14 +14,9 @@
 #include <string.h>
 //#include "defs.h"
 
-#include "../../include/Entidades/Task.h"
-#include "../../include/Entidades/Prog.h"
-#include "../../include/Entidades/Auxiliares.h"
-#include "../../include/Entidades/Client.h"
-
 //short amount_programs, char ** path_to_programs, short * amount_args, char *** args
 
-int client (int argc, char* argv[]){
+int main(int argc, char* argv[]){
 
     // printf("%d\n", argc);
     // for(int i = 0; i < argc; i++) {
@@ -48,6 +50,7 @@ int client (int argc, char* argv[]){
                     char*** args;
 
                     parse_string(argv[3], argv[4], &path_to_programs, &args, &amount_programs, &amount_args);
+                    
                     // printf("listo\n");
                     // printf("%s\n", path_to_programs[0]);
                     // printf("%d\n", amount_args[0]);
@@ -69,6 +72,4 @@ int client (int argc, char* argv[]){
     }
 
     return 0;
-
-
 }

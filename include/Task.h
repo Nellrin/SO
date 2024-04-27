@@ -1,12 +1,13 @@
+#ifndef TASK_H
+#define TASK_H
+
 #include <sys/time.h>
 struct timeval;
 
-#include "../../include/Entidades/Prog.h"
+#include "Prog.h"
 
 
 
-#ifndef TASK_H
-#define TASK_H
 
 
 typedef enum {

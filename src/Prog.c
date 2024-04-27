@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "../../include/Entidades/Prog.h"
+#include "../include/Prog.h"
 
 Prog * create_Prog(char * path_to_program, short amount_args, char ** args){
     Prog * x = malloc(sizeof(Prog));

@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "../../include/Entidades/Auxiliares.h"
+#include "../include/Auxiliares.h"
 
 void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
     char *input_copy = strdup(input);

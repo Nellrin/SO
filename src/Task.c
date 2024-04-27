@@ -1,5 +1,3 @@
-#include "../../include/Entidades/Task.h"
-#include "../../include/Entidades/Prog.h"
 
 
 #include <stdio.h>
@@ -11,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "../include/Task.h"
 
 Task * create_Task(int id, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
