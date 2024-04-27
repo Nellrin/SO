@@ -41,15 +41,15 @@ void destroy_Task(Task * x){
     free(x->programs);
     free(x);
 }
-void execute_Task(Task * x){
+void execute_Task(Task * x, char * output_file){
 
     gettimeofday(&(x->start_time), NULL);
 
         char * filename = malloc(sizeof(char) * 128);
-        sprintf(filename, "output_folder/%d.txt", x->id);
+        sprintf(filename, "%s/%d.txt", output_file, x->id);
         int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
         
-        snprintf(filename,128,"output_folder/done_tasks.bin");
+        snprintf(filename,128,"%s/done_tasks.bin",output_file);
         int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
 

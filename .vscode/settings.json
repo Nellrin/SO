@@ -1,18 +1,7 @@
 {
     "files.associations": {
-        "cstdlib": "c",
-        "task.h": "c",
         "types.h": "c",
-        "stdlib.h": "c",
-        "unistd.h": "c",
-        "fcntl.h": "c",
-        "time.h": "c",
-        "prog.h": "c",
-        "stdio.h": "c",
-        "wait.h": "c",
-        "string.h": "c",
-        "auxiliares.h": "c",
-        "client.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "task.h": "c"
     }
 }

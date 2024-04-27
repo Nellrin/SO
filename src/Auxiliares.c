@@ -95,5 +95,18 @@ Task * parse_string(int id, char * time, char *argv){
 
     Task * x = create_Task(id, amount_programs, path_to_programs, amount_args, args, time);
 
+    for(int i = 0; i < amount_programs; i++) free(path_to_programs[i]);
+        free(path_to_programs);
+        for(int i = 0; i < amount_palavras; i++) free(palavras[i]);
+        free(palavras);
+        for (int i = amount_programs; 0 <= i; i--) {
+            for(int j = 0; j < amount_args[i]; j++) {
+                free(args[i][j]);
+            }
+            free(args[i]);
+        }
+        free(args);
+        free(amount_args);
+
     return x;
 }

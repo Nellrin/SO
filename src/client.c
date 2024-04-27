@@ -45,20 +45,17 @@ int main(int argc, char* argv[]){
             if (strcmp(argv[1],"execute") == 0) {
                 //printf("recibi execute\n");
                 if (strcmp(argv[3],"-u") == 0 || strcmp(argv[3],"-p") == 0) {
-                    //printf("Es -u\n");
 
-                    // short amount_programs;
-                    // short* amount_args;
-                    // char** path_to_programs;
-                    // char*** args;
-
-                    // parse_string(argv[3], argv[4], &path_to_programs, &args, &amount_programs, &amount_args);
                     Task *newTask = parse_string(0, argv[2], argv[4]);
-                    // printf("listo\n");
-                    // printf("%s\n", path_to_programs[0]);
-                    // printf("%d\n", amount_args[0]);
+                    int in = open("inbound", O_WRONLY), out = open("outbound", O_RDONLY), idTask;
+                    char *msg = malloc(sizeof(char) * 128);
+                    write(in, newTask, sizeof(Task));//manda a task para o server
 
-                    // Task *newTask = create_Task(0, amount_programs, path_to_programs, amount_args, args, argv[2]);
+                    read(out, &idTask, sizeof(int));//recebe o id da task enviada
+                    sprintf(msg, "TASK %d Received", idTask);
+                    write(1, msg, sizeof(msg));//escreve na terminal uma msg a dar perceber que o server recebeu a task (o id da task é gerada pelo server)
+
+                    // printf("listo\n");
                     printf("listo\n");
 
 

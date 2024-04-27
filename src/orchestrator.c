@@ -4,12 +4,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
+
+
 #include "Task.h"
 
 typedef struct TaskLinkedList
 {
     Task * task ;
-    TTL * next ;
+    struct TaskLinkedList * next ;
 
 } TTL ;
 
@@ -26,17 +30,17 @@ TTL * addTask (Task * task , TTL * queue)
     {
         TTL * newqueue = malloc (sizeof (TTL *)) ;
         newqueue -> next = queue ;
-        newqueue -> task ;
+        newqueue -> task = task;
         return newqueue ;
     }  
 }
 
-Task * grabTask (TTL * queue , int method)
+Task * grabTask (TTL * queue , char * method)
 {
     //method 1 -> fifo
     //method 2 -> ordered by time
 
-    if (method == 1)
+    if(!strcmp(method, "FIFO"))
     {
         TTL * last = NULL ;
         while (queue -> next != NULL)
@@ -54,10 +58,14 @@ Task * grabTask (TTL * queue , int method)
         return returne ;
     }
 
-    if (method == 2)
+    if(!strcmp(method, "TIME"))
     {
         struct timeval mintime = queue -> task -> estimated_duration ;
-        Task * mintask = queue -> task ;
+        TTL * mintask = queue ;
+
+        TTL * last = NULL ;
+        TTL * minlast = NULL ;
+        TTL * minnext = NULL ;
 
         struct timeval temptime ;
         while (queue != NULL)
@@ -67,16 +75,29 @@ Task * grabTask (TTL * queue , int method)
             if (temptime.tv_sec < mintime.tv_sec || (temptime.tv_sec == mintime.tv_sec && temptime.tv_usec < mintime.tv_usec))
             {
                 mintime = temptime ;
-                mintask = queue -> task ;
+
+                minlast = last ;
+                mintask = queue ;
+                minnext = queue -> next ;
             }
 
+            last = queue ;
             queue = queue -> next ;
         }
-        return mintask ;
+
+        Task * returne = mintask -> task ;
+
+        minlast -> next = minnext ;
+        free (mintask) ;
+        mintask = NULL ;
+
+        return returne ;
     }
+
+    return NULL;
 }
 
-int orchestrator (char * argv [] , int argc)
+int main (int argc, char * argv [])
 {
     if (argc != 3)
     {
@@ -118,7 +139,7 @@ int orchestrator (char * argv [] , int argc)
     }
 
     //store tasks
-    Task * task ;
+    Task * task = NULL;
 
     //initialize queue
     TTL * queue ;
@@ -131,7 +152,7 @@ int orchestrator (char * argv [] , int argc)
 
     while (running)
     {
-        while (r = read (fdin , task, sizeof (Task *)) > 0)
+        while ((r = read (fdin , task, sizeof (Task *))) > 0)
         {
             if (ParallelProcessesRunning < MaxParallelTasks)
             {
@@ -142,13 +163,13 @@ int orchestrator (char * argv [] , int argc)
                 {
                     perror ("Error creating forking") ;
                 }
-                else if (pid = 0) //FILHO
+                else if (pid == 0) //FILHO
                 {
-                    execute_Task (task) ;
+                    execute_Task (task, argv[1]) ;
                     
                     while (queue != NULL)
                     {
-                        execute_Task (grabtask (queue , 1)) ;
+                        execute_Task (grabTask (queue , argv[3]), argv[1]) ;
                     }
 
                     ParallelProcessesRunning -- ;
@@ -166,4 +187,5 @@ int orchestrator (char * argv [] , int argc)
         }
         // saiu do fifo
     }
+    return 0;
 }
