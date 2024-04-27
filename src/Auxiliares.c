@@ -7,77 +7,93 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
-    char *input_copy = strdup(input);
-    char *token;
+#include "../include/Task.h"
 
-    if(strcmp(mode, "-u") == 0) {
+int amount_chars(char * string, char c){
+    int amount = 0;
 
-        (*amount_programs) = 1;
-        (*path_to_programs) = malloc((*amount_programs) * sizeof(char *));
-        //printf("check\n");
+    for(int i = 0; i<strlen(string); i++)
+    amount += (string[i] == c);
+
+    return amount;
+}
+
+/*
+typedef struct {
+    [DONE] int id,
+    [DONE] short amount_programs, 
+    [DONE] char **path_to_programs, 
+    short *amount_args, 
+    char ***args, 
+    char *estimated_duration
+} Task;
+
+*/
+static char ** string_to_array(char *str, int *amount) {
+    *amount = 1+ amount_chars(str,' ');
+    char ** list = malloc(sizeof(char *) * (*amount));
+
+
+    char * new_str = strdup(str);
+    char * token;
+    int i = 0;
     
-        token = strtok(input_copy, " ");
-        (*path_to_programs)[0] = strdup(token);
-        printf("%s\n", (*path_to_programs)[0]);
-
-        //printf("check\n");
-        (*amount_args)[0] = 0;
-        //printf("xd\n");
-        (*args) = malloc((*amount_programs) * sizeof(char ***));
-        (*args)[0] = malloc((*amount_args)[0] * sizeof(char **));
-        //printf("check\n");
-        
-
-        for(int i = 0; token != NULL; i++) {
-            token = strtok(NULL, " ");
-            if (token != NULL) {
-                (*amount_args)[0] = i+1;
-                (*args)[0] = realloc((*args)[0], (*amount_args)[0] * sizeof(char **));
-                (*args)[0][i] = strdup(token);
-                //printf("%s\n", (*args)[0][i]); // Corregido: Acceso a arguments como puntero a puntero
-            }
-        }
-        
-    }
-
-    //$ ./client execute 3000 -p "prog-a arg-1 (...) arg-n | prog-b arg-1 (...) arg-n | prog-c arg-1 (...) arg-n"
-    if (strcmp(mode, "-p") == 0) {
-        for (int i = 0; (token = strsep(&input_copy, "|")) != NULL; i++) { //prog-a arg-1 (...) arg-n
-            //if (input_copy == NULL) break;
-            
-            if(i != 0) token = token+1;
-            printf("%s\n", token);
-            //input_copy = strtok(NULL, " "); //prog-a
-            //input_copy = strsep(&input_copy, "|") //prog-a
-            //input_copy = input_copy+1;
-            //printf("%s\n", input_copy);
-
-            (*amount_programs) = i+1;
-            (*path_to_programs) = malloc((*amount_programs) * sizeof(char *));
-            token = strtok(token, " ");
-            (*path_to_programs)[i] = strdup(token); //prog-a
-            printf("%s\n", (*path_to_programs)[i]);
-
-            (*amount_args)[i] = 0;
-            (*args) = malloc((*amount_programs) * sizeof(char ***));
-            (*args)[i] = malloc((*amount_args)[i] * sizeof(char **));
-
-            for(int j = 0; token != NULL; j++) {
-                token = strtok(NULL, " "); //arg-1
-                if (token != NULL) {
-                    (*amount_args)[i] = j+1;
-                    (*args)[i] = realloc((*args)[i], (*amount_args)[i] * sizeof(char **));
-                    (*args)[i][j] = strdup(token);
-                    printf("%s\n", (*args)[i][j]); // Corregido: Acceso a arguments como puntero a puntero
-                }
-            }
-
-            //input_copy = token;
-            printf("\n");
+    while((token = strsep(&new_str, " \0")) != NULL && i < (*amount)) {
+        if(*token != '\0') {
+            list[i] = strdup(token);
+            i++;
         }
     }
-    
 
-    free(input_copy);
+    free(new_str);
+    
+    if(token!=NULL)
+    free(token);
+
+    return list;
+}
+
+// void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
+Task * parse_string(int id, char * time, char *argv){
+    short amount_programs = 1 + amount_chars(argv,'|');
+    char ** path_to_programs = malloc(sizeof(char *) * amount_programs);
+    short * amount_args = calloc(sizeof(short), amount_programs);
+    char *** args = malloc(sizeof(char **) * amount_programs);
+
+    int amount_palavras = 0;
+    char ** palavras = string_to_array(argv, &amount_palavras);
+
+
+    for(int i = 0; i < amount_programs;)
+    for(int j = 0; j < amount_palavras;j++){
+        if(j == 0 || !strcmp("|",palavras[j - 1])){
+            path_to_programs[i] = strdup(palavras[j]);
+
+
+
+            for(int k = 0; k + j + 1 < amount_palavras && (!strcmp(palavras[k+j+1],"|") == 0); k++){
+                // printf("\nK = %d\n\n",amount_palavras);
+                // printf("%s\n",palavras[k]);
+                amount_args[i]++;
+            }
+
+            args[i] = malloc(sizeof(char *) * amount_args[i]);
+
+            int m = 0;
+            for(int k = 0; k + j + 1 < amount_palavras && (!strcmp(palavras[k+j+1],"|") == 0); k++){
+                args[i][k] = strdup(palavras[1 + k + j]); m++;
+            }
+                printf("%d\n", amount_args[i]);
+            i++;
+        }
+    
+    }
+
+
+
+   //$ ./client execute 3000 -p "prog-a arg-1 (...) arg-n | prog-b arg-1 (...) arg-n | prog-c arg-1 (...) arg-n"
+
+    Task * x = create_Task(id, amount_programs, path_to_programs, amount_args, args, time);
+
+    return x;
 }
