@@ -2,6 +2,11 @@
     "files.associations": {
         "types.h": "c",
         "stat.h": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "string.h": "c",
+        "queue.h": "c",
+        "unistd.h": "c",
+        "fcntl.h": "c",
+        "time.h": "c"
     }
 }

@@ -99,7 +99,7 @@ Task * parse_string(int id, char * time, char *argv){
         free(path_to_programs);
         for(int i = 0; i < amount_palavras; i++) free(palavras[i]);
         free(palavras);
-        for (int i = amount_programs; 0 <= i; i--) {
+        for (int i = amount_programs-1; 0 <= i; i--) {
             for(int j = 0; j < amount_args[i]; j++) {
                 free(args[i][j]);
             }
