@@ -13,6 +13,8 @@
 
 typedef struct orchestrator{
     TTL* queue;
+    int active_tasks;
+    
     char * output_folder;
     int parallel_tasks;
     char * sched_policy;
@@ -20,60 +22,41 @@ typedef struct orchestrator{
 
 
 
-int main (int argc, char * argv [])
-{
+int main (int argc, char * argv []){
     if (argc != 3)
-    {
-        perror ("Wrong number of arguments given when calling el Orquestador") ;
-    }
+    perror("Invalid Number of Arguments");
 
-    // output_folder = argv [1]
-    // parallel-tasks = argv [2]
-    // shced policy = argv [3]
+    Server * Big_Guy = malloc(sizeof(Server));
 
-    // int MaxParallelTasks = atoi (argv [2]) ;
+    Big_Guy->output_folder = strdup(argv[1]);
+    Big_Guy->parallel_tasks = atoi(argv[2]);
+    Big_Guy->sched_policy = strdup(argv[3]);
 
-    // int running = 1 ;
+    Big_Guy->queue = NULL;
+    Big_Guy->active_tasks = 0;
+
 
 
     //opening all fifos
-    if (mkfifo ("inbound" , 0600) == -1)
-	{
-		perror ("error creating inbound") ;
-	}
+mkfifo ("inbound" , 0600);
+mkfifo ("outbound" , 0600);
 
-	if (mkfifo ("outbound" , 0600) == -1)
-	{
-		perror ("error creating outbound") ;
-	}
+int fdin = open ("inbound" , O_RDONLY) ;
+int fdout = open ("inbound" , O_WRONLY) ;
 
-	int fdin = open ("inbound" , O_RDONLY) ;
-	if (fdin == -1)
-    {
-        perror ("error opening inbound") ;
-        return 1 ;
-    }
+    //store tasks
+    Task * task = NULL;
 
-	int fdout = open ("inbound" , O_WRONLY) ;
-	if (fdout == -1)
-    {
-        perror ("error opening outbound") ;
-        return 1 ;
-    }
+    //initialize queue
+    TTL * queue ;
 
-    // //store tasks
-    // Task * task = NULL;
+    ssize_t r ;
 
-    // //initialize queue
-    // TTL * queue ;
+    pid_t pid ;
 
-    // ssize_t r ;
+    int ParallelProcessesRunning = 0 ;
 
-    // pid_t pid ;
-
-    // int ParallelProcessesRunning = 0 ;
-
-    // while (running)
+    // while(1)
     // {
     //     while ((r = read (fdin , task, sizeof (Task *))) > 0)
     //     {
@@ -108,7 +91,7 @@ int main (int argc, char * argv [])
     //             queue = addTask (task , queue) ;
     //         } 
     //     }
-    //     // saiu do fifo
+        // saiu do fifo
     // }
     return 0;
 }
