@@ -54,7 +54,7 @@ static char ** string_to_array(char *str, int *amount) {
 }
 
 // void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
-Task * parse_string(int id, char * pipe_flag, char * time, char *argv, char * output_file){
+Task * parse_string(int id, int pid, char * pipe_flag, char * time, char *argv, char * output_file){
     short amount_programs = 1 + amount_chars(argv,'|');
     char ** path_to_programs = malloc(sizeof(char *) * amount_programs);
     short * amount_args = calloc(sizeof(short), amount_programs);
@@ -83,7 +83,7 @@ Task * parse_string(int id, char * pipe_flag, char * time, char *argv, char * ou
             for(int k = 0; k + j + 1 < amount_palavras && (!strcmp(palavras[k+j+1],"|") == 0); k++){
                 args[i][k] = strdup(palavras[1 + k + j]); m++;
             }
-                printf("%d\n", amount_args[i]);
+                //printf("%d\n", amount_args[i]);
             i++;
         }
     
@@ -93,7 +93,7 @@ Task * parse_string(int id, char * pipe_flag, char * time, char *argv, char * ou
 
    //$ ./client execute 3000 -p "prog-a arg-1 (...) arg-n | prog-b arg-1 (...) arg-n | prog-c arg-1 (...) arg-n"
 
-    Task * x = create_Task(id,pipe_flag, amount_programs, path_to_programs, amount_args, args, time);
+    Task * x = create_Task(id, pid, pipe_flag, amount_programs, path_to_programs, amount_args, args, time);
 
     char * filename = malloc(sizeof(char) * 128);
     snprintf(filename,128,"%s/done_tasks.bin",output_file);
@@ -124,8 +124,8 @@ void new_status(char * folder, int task_id, Task_Status estado){
     char * filename = malloc(sizeof(char) * 128);
     snprintf(filename,128,"%s/done_tasks.bin",folder);
     int fd = open(filename, O_RDWR | O_CREAT | O_APPEND, 0644), r; //r => read xd
-    Task * tk;
-    while ((r = read(fd, tk, sizeof(Task))) > 0) {//le alguma coisa
+    Task * tk = malloc(sizeof(Task));
+    while ((r = read(fd, tk, sizeof(Task))) > 0){//le alguma coisa
         if (tk->id == task_id) {
             tk->status = estado;
             lseek(fd, -sizeof(Task), SEEK_CUR);

@@ -10,8 +10,9 @@
 #include <sys/wait.h>
 
 #include "../include/Task.h"
+#include "../include/Queue.h"
 
-Task * create_Task(int id, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
+Task * create_Task(int id, int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
 
     if (x == NULL) {
@@ -20,6 +21,7 @@ Task * create_Task(int id, char * pipe_flag, short amount_programs, char ** path
     }
 
     x->id = id;
+    x->pid = pid;
     x->pipe_flag = strdup(pipe_flag);
 
     x->estimated_duration.tv_sec = strtod(estimated_duration,NULL) / 1000;
@@ -53,10 +55,10 @@ void execute_Task(Task * x, char * output_file){
 
             x->status = EXECUTING;
 
-            snprintf(filename,128,"%s/done_tasks.bin",output_file);
-            int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            lseek(done, 0, SEEK_END);
-            write(done, x, sizeof(Task));
+            // snprintf(filename,128,"%s/done_tasks.bin",output_file);
+            // int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            // lseek(done, 0, SEEK_END);
+            // write(done, x, sizeof(Task));
         
 
 
@@ -83,8 +85,8 @@ void execute_Task(Task * x, char * output_file){
 
             x->status = COMPLETED;
 
-            lseek(done, 0, SEEK_END);
-            write(done, x, sizeof(Task));
+            // lseek(done, 0, SEEK_END);
+            // write(done, x, sizeof(Task));
 }
 Task **get_Tasks() {
     
@@ -134,29 +136,14 @@ void print_Task_status(Task *x){
 
     write(STDOUT_FILENO, lista, strlen(lista));
 }
-
-
-/*
-typedef struct {
-    int id;
-    
-    short amount_programs; 
-    Prog ** programs;
-        
-    struct timeval estimated_duration;
-    struct timeval real_duration;
-    struct timeval start_time;
-
-    Task_Status status;
-} Task;
-
-typedef struct {
-    char * path_to_program;
-    
-    short amount_args;
-    char ** args;
-} Prog;
-*/
+Task* grabTask(TTL *queue) {
+    // Modificar el puntero original
+    Task* taskToExec = queue->task; // Nuevo valor del puntero
+    TTL *kill = queue;
+    queue = queue->next;
+    free(kill);
+    return taskToExec;
+}
 void print_task_debug(Task * x){
     printf("\n\n──────────────────────────────────\n");
     printf("[TASK %03d]\n",x->id);

@@ -37,24 +37,25 @@ int main(int argc, char* argv[]){
         case 5:
             if (!strcmp(argv[1],"EXECUTE") && (!strcmp(argv[3],"-u") || !strcmp(argv[3],"-p"))) {
 
-                    Task *newTask = parse_string(0, argv[3],argv[2], argv[4], "output_file");
+                    int pid = getpid();
+                    char pipe_name[10];
+                    sprintf(pipe_name, "%d", pid);
+                    mkfifo(pipe_name, 0600);
 
-                    // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
-                    int in = open("inbound", O_WRONLY), out = open("outbound", O_RDONLY), idTask;
-                    char *msg = malloc(sizeof(char) * 128);
+                    Task *newTask = parse_string(0, pid, argv[3],argv[2], argv[4], "output_file");
+
+                    // // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
+                    int in = open("inbound", O_WRONLY);
                     write(in, newTask, sizeof(Task));//manda a task para o server
 
-                    read(out, &idTask, sizeof(int));//recebe o id da task enviada
-                    sprintf(msg, "TASK %d Received", idTask);
-                    write(1, msg, sizeof(msg));//escreve na terminal uma msg a dar perceber que o server recebeu a task (o id da task é gerada pelo server)
+                    //print_task_debug(newTask);
 
-                    printf("listo\n");
-
-
-                    print_task_debug(newTask);
-
-                    
-                    
+                    int out = open(pipe_name, O_RDONLY), idTask;
+                    if (read(out, &idTask, sizeof(int)) > 0) {
+                        char ret[10];
+                        sprintf(ret, "TASK %d Received", idTask);
+                        write(1, ret, sizeof(ret));
+                    }
             }
             else perror("Argumentos inválidos\n");
             break;

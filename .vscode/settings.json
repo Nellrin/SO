@@ -7,6 +7,8 @@
         "queue.h": "c",
         "unistd.h": "c",
         "fcntl.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "wait.h": "c",
+        "stdlib.h": "c"
     }
 }

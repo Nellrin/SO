@@ -5,7 +5,7 @@
 struct timeval;
 
 #include "Prog.h"
-
+#include "Queue.h"
 
 
 
@@ -19,6 +19,7 @@ typedef enum {
 
 typedef struct {
     int id;
+    int pid;
     char * pipe_flag;
     
     short amount_programs; 
@@ -32,10 +33,11 @@ typedef struct {
 } Task;
 
 
-Task * create_Task(int id, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration);
+Task * create_Task(int id, int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration);
 void destroy_Task(Task *Task);
 void execute_Task(Task * x, char * output_file);
 void print_Task_status(Task *Task);
 Task **get_Tasks();
 void print_task_debug(Task * x);
+Task* grabTask(TTL *queue);
 #endif

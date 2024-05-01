@@ -10,6 +10,7 @@
 
 #include "Task.h"
 #include "Queue.h"
+#include "Auxiliares.h"
 
 typedef struct orchestrator{
     TTL* queue;
@@ -38,11 +39,11 @@ int main (int argc, char * argv []){
 
 
     //opening all fifos
-mkfifo ("inbound" , 0600);
-mkfifo ("outbound" , 0600);
+    mkfifo ("inbound" , 0600);
+    //mkfifo ("outbound" , 0600);
 
-int fdin = open ("inbound" , O_RDONLY) ;
-int fdout = open ("outbound" , O_WRONLY) ;
+    int fdin = open ("inbound" , O_RDONLY) ;
+    //int fdout = open ("outbound" , O_WRONLY) ;
 
     //store tasks
     Task * task = NULL;
@@ -56,42 +57,56 @@ int fdout = open ("outbound" , O_WRONLY) ;
 
     int ParallelProcessesRunning = 0 ;
 
-    // while(1)
-    // {
-    //     while ((r = read (fdin , task, sizeof (Task *))) > 0)
-    //     {
-    //         if (ParallelProcessesRunning < MaxParallelTasks)
-    //         {
-    //             ParallelProcessesRunning ++ ;
-    //             pid = fork () ; //CRIA UM FILHO
+    while(1)
+    {
+        while ((r = read (fdin , task, sizeof (Task))) > 0)
+        {
+            //guardar a tarefa no ficheiro bin com o estado: em espera
+            char * filename = malloc(sizeof(char) * 128);
+            snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
+            int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            lseek(done, 0, SEEK_END);
+            write(done, task, sizeof(Task));
+            //ja foi guardado a task no ficheiro com o estado: em espera
 
-    //             if (pid < 0)
-    //             {
-    //                 perror ("Error creating forking") ;
-    //             }
-    //             else if (pid == 0) //FILHO
-    //             {
-    //                 execute_Task (task, argv[1]) ;
+            if (ParallelProcessesRunning < Big_Guy->parallel_tasks)
+            {
+                ParallelProcessesRunning ++ ;
+                pid = fork () ; //CRIA UM FILHO
+
+                if (pid < 0)
+                {
+                    perror ("Error creating forking") ;
+                }
+                else if (pid == 0) //FILHO
+                {
+                    //atualizar estado da tarefa no ficheiro bin como: executing
+                    new_status(Big_Guy->output_folder, task->id, EXECUTING);
+
+                    execute_Task (task, argv[1]) ;
+
+                    //atualizar estado da tarefa no ficheiro bin como: finish
+                    new_status(Big_Guy->output_folder, task->id, COMPLETED);
                     
-    //                 while (queue != NULL)
-    //                 {
-    //                     execute_Task (grabTask (queue , argv[3]), argv[1]) ;
-    //                 }
+                    while (queue != NULL)
+                    {
+                        execute_Task (grabTask (queue), argv[1]) ;
+                    }
 
-    //                 ParallelProcessesRunning -- ;
-    //                 _exit (0) ;
-    //             }
-    //             else //PAI
-    //             {
-    //                 //Handle Daddy Issues
-    //             }
-    //         }
-    //         else
-    //         {
-    //             queue = addTask (task , queue) ;
-    //         } 
-    //     }
-        // saiu do fifo
-    // }
+                    ParallelProcessesRunning -- ;
+                    _exit (0) ;
+                }
+                // else //PAI
+                // {
+                //     //Handle Daddy Issues
+                // }
+            }
+            else
+            {
+                queue = add_task (queue, task, Big_Guy->sched_policy) ;
+            } 
+        }
+        //saiu do fifo
+    }
     return 0;
 }

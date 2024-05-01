@@ -15,6 +15,6 @@ bin/client: obj/client.o obj/Prog.o obj/Task.o obj/Auxiliares.o
 
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
-	
+
 clean:
 	rm -f obj/* tmp/* bin/*
