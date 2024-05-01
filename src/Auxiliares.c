@@ -119,3 +119,22 @@ Task * parse_string(int id, char * pipe_flag, char * time, char *argv, char * ou
 
     return x;
 }
+
+void new_status(char * folder, int task_id, Task_Status estado){
+    char * filename = malloc(sizeof(char) * 128);
+    snprintf(filename,128,"%s/done_tasks.bin",folder);
+    int fd = open(filename, O_RDWR | O_CREAT | O_APPEND, 0644), r; //r => read xd
+    Task * tk;
+    while ((r = read(fd, tk, sizeof(Task))) > 0) {//le alguma coisa
+        if (tk->id == task_id) {
+            tk->status = estado;
+            lseek(fd, -sizeof(Task), SEEK_CUR);
+            // lseek é uma chamada de sistema que é usada para alterar a posição do cursor de leitura ou gravação em um arquivo. Nesse caso, fd é o descritor de arquivo associado ao arquivo binário.
+            // -sizeof(Task) é o deslocamento negativo que você deseja mover o cursor. sizeof(Task) retorna o tamanho da estrutura struct Task em bytes, e o sinal negativo indica que queremos retroceder essa quantidade de bytes.
+            // SEEK_CUR é um argumento que indica que o deslocamento deve ser relativo à posição atual do cursor no arquivo.
+
+            // Escrevendo a Task atualizada
+            write(fd, tk, sizeof(Task));
+        }
+    }   
+}
