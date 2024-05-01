@@ -11,7 +11,7 @@
 
 #include "../include/Task.h"
 
-Task * create_Task(int id, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
+Task * create_Task(int id, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
 
     if (x == NULL) {
@@ -20,6 +20,7 @@ Task * create_Task(int id, short amount_programs, char ** path_to_programs, shor
     }
 
     x->id = id;
+    x->pipe_flag = strdup(pipe_flag);
 
     x->estimated_duration.tv_sec = strtod(estimated_duration,NULL) / 1000;
     x->estimated_duration.tv_usec = (((int) strtod(estimated_duration,NULL)) % 1000) * 1000;
@@ -39,6 +40,7 @@ void destroy_Task(Task * x){
     destroy_Prog(x->programs[i]);
     
     free(x->programs);
+    free(x->pipe_flag);
     free(x);
 }
 void execute_Task(Task * x, char * output_file){
@@ -48,17 +50,25 @@ void execute_Task(Task * x, char * output_file){
         char * filename = malloc(sizeof(char) * 128);
         sprintf(filename, "%s/%d.txt", output_file, x->id);
         int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+            x->status = EXECUTING;
+
+            snprintf(filename,128,"%s/done_tasks.bin",output_file);
+            int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            lseek(done, 0, SEEK_END);
+            write(done, x, sizeof(Task));
         
-        snprintf(filename,128,"%s/done_tasks.bin",output_file);
-        int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
 
     dup2(output, STDOUT_FILENO);
     dup2(output, STDERR_FILENO);
 
 
-        for(int i = 0; i < x->amount_programs; i++)
-        execute_Prog(x->programs[i]);
+        if(!strcmp(x->pipe_flag,"-u"))
+        execute_single_Prog(x->programs[0]);
+
+        if(!strcmp(x->pipe_flag,"-p"))
+        execute_multiple_Prog(x->programs, x->amount_programs);
 
 
         close(output);

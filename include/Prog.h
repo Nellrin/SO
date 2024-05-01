@@ -11,6 +11,7 @@ typedef struct {
 
 Prog * create_Prog(char * path_to_program, short amount_args, char ** args);
 void destroy_Prog(Prog * x);
-void execute_Prog(Prog * x);
+void execute_single_Prog(Prog * x);
+void execute_multiple_Prog(Prog ** x, int amount);
 
 #endif

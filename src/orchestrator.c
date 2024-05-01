@@ -42,7 +42,7 @@ mkfifo ("inbound" , 0600);
 mkfifo ("outbound" , 0600);
 
 int fdin = open ("inbound" , O_RDONLY) ;
-int fdout = open ("inbound" , O_WRONLY) ;
+int fdout = open ("outbound" , O_WRONLY) ;
 
     //store tasks
     Task * task = NULL;

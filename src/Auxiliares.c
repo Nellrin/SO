@@ -54,7 +54,7 @@ static char ** string_to_array(char *str, int *amount) {
 }
 
 // void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
-Task * parse_string(int id, char * time, char *argv){
+Task * parse_string(int id, char * pipe_flag, char * time, char *argv, char * output_file){
     short amount_programs = 1 + amount_chars(argv,'|');
     char ** path_to_programs = malloc(sizeof(char *) * amount_programs);
     short * amount_args = calloc(sizeof(short), amount_programs);
@@ -93,7 +93,16 @@ Task * parse_string(int id, char * time, char *argv){
 
    //$ ./client execute 3000 -p "prog-a arg-1 (...) arg-n | prog-b arg-1 (...) arg-n | prog-c arg-1 (...) arg-n"
 
-    Task * x = create_Task(id, amount_programs, path_to_programs, amount_args, args, time);
+    Task * x = create_Task(id,pipe_flag, amount_programs, path_to_programs, amount_args, args, time);
+
+    char * filename = malloc(sizeof(char) * 128);
+    snprintf(filename,128,"%s/done_tasks.bin",output_file);
+    int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+    lseek(done, 0, SEEK_END);
+    write(done, x, sizeof(Task));
+
+
 
     for(int i = 0; i < amount_programs; i++) free(path_to_programs[i]);
         free(path_to_programs);

@@ -37,7 +37,9 @@ int main(int argc, char* argv[]){
         case 5:
             if (!strcmp(argv[1],"EXECUTE") && (!strcmp(argv[3],"-u") || !strcmp(argv[3],"-p"))) {
 
-                    Task *newTask = parse_string(0, argv[2], argv[4]);
+                    Task *newTask = parse_string(0, argv[3],argv[2], argv[4], "output_file");
+
+                    // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
                     int in = open("inbound", O_WRONLY), out = open("outbound", O_RDONLY), idTask;
                     char *msg = malloc(sizeof(char) * 128);
                     write(in, newTask, sizeof(Task));//manda a task para o server
