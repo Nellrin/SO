@@ -8,13 +8,14 @@
 #include <string.h>
 
 
-#include "Task.h"
-#include "Queue.h"
-#include "Auxiliares.h"
+#include "../include/Queue.h"
+#include "../include/Task.h"
+#include "../include/Auxiliares.h"
 
 typedef struct orchestrator{
     TTL* queue;
     int active_tasks;
+    int log;
     
     char * output_folder;
     int parallel_tasks;
@@ -24,7 +25,7 @@ typedef struct orchestrator{
 
 
 int main (int argc, char * argv []){
-    if (argc != 3)
+    if (argc != 4)
     perror("Invalid Number of Arguments");
 
     Server * Big_Guy = malloc(sizeof(Server));
@@ -35,65 +36,63 @@ int main (int argc, char * argv []){
 
     Big_Guy->queue = NULL;
     Big_Guy->active_tasks = 0;
+    Big_Guy->log = 0;
 
 
-
-    //opening all fifos
-    mkfifo ("inbound" , 0600);
-    //mkfifo ("outbound" , 0600);
-
-    int fdin = open ("inbound" , O_RDONLY) ;
-    //int fdout = open ("outbound" , O_WRONLY) ;
-
-    //store tasks
-    Task * task = NULL;
-
-    //initialize queue
-    TTL * queue ;
-
-    ssize_t r ;
-
-    pid_t pid ;
-
-    int ParallelProcessesRunning = 0 ;
-
-    while(1)
-    {
-        while ((r = read (fdin , task, sizeof (Task))) > 0)
-        {
-            //guardar a tarefa no ficheiro bin com o estado: em espera
             char * filename = malloc(sizeof(char) * 128);
             snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
             int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+
+// $ ./client execute 100 -u "prog-a arg-1 (...) arg-n"
+
+    mkfifo ("server" , 0600);
+
+    int x, fdout = 0;
+    int fdin = open("server" , O_WRONLY) ;
+
+    Task * task = malloc(sizeof(Task));
+    char client_path[10];
+
+    ssize_t r;
+
+    while((r = read (fdin , task, sizeof (Task))) > 0){
+        
+        Big_Guy->log++;
+        x = Big_Guy->log;
+        set_ids(task,Big_Guy->log,Big_Guy->output_folder);
+        sprintf(client_path, "%d", task->pid);
+        fdout = open(client_path , O_RDONLY);
+        write(fdout, &x, sizeof(int));
+
+
+        if(/*blah blah blah*/ 0){
+            /*imprime status*/
+        }
+
+        else{
             lseek(done, 0, SEEK_END);
             write(done, task, sizeof(Task));
-            //ja foi guardado a task no ficheiro com o estado: em espera
 
-            if (ParallelProcessesRunning < Big_Guy->parallel_tasks)
-            {
-                ParallelProcessesRunning ++ ;
-                pid = fork () ; //CRIA UM FILHO
-
-                if (pid < 0)
-                {
-                    perror ("Error creating forking") ;
-                }
-                else if (pid == 0) //FILHO
-                {
+            if (Big_Guy->active_tasks < Big_Guy->parallel_tasks){
+                Big_Guy->active_tasks++;
+                if(fork() == 0){
                     //atualizar estado da tarefa no ficheiro bin como: executing
                     new_status(Big_Guy->output_folder, task->id, EXECUTING);
 
-                    execute_Task (task, argv[1]) ;
+                    execute_Task(task, argv[1]);
 
-                    //atualizar estado da tarefa no ficheiro bin como: finish
+                    // atualizar estado da tarefa no ficheiro bin como: finish
                     new_status(Big_Guy->output_folder, task->id, COMPLETED);
                     
-                    while (queue != NULL)
-                    {
-                        execute_Task (grabTask (queue), argv[1]) ;
+                    
+                    while(Big_Guy->queue != NULL){
+                        new_status(Big_Guy->output_folder, task->id, EXECUTING);
+                        execute_Task(grabTask(Big_Guy->queue), argv[1]) ;
+                        new_status(Big_Guy->output_folder, task->id, COMPLETED);
                     }
 
-                    ParallelProcessesRunning -- ;
+                    Big_Guy->active_tasks--;
                     _exit (0) ;
                 }
                 // else //PAI
@@ -102,11 +101,10 @@ int main (int argc, char * argv []){
                 // }
             }
             else
-            {
-                queue = add_task (queue, task, Big_Guy->sched_policy) ;
-            } 
+            Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
+        
         }
-        //saiu do fifo
     }
+        //saiu do fifo
     return 0;
 }

@@ -9,6 +9,7 @@
         "fcntl.h": "c",
         "time.h": "c",
         "wait.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "auxiliares.h": "c"
     }
 }

@@ -54,7 +54,13 @@ static char ** string_to_array(char *str, int *amount) {
 }
 
 // void parse_string(char *mode, char *input, char ***path_to_programs, char ****args, short *amount_programs, short **amount_args) {
-Task * parse_string(int id, int pid, char * pipe_flag, char * time, char *argv, char * output_file){
+
+/*
+    int id;
+    int pid;
+    char * output;
+*/
+Task * parse_string(int pid, char * pipe_flag, char * time, char *argv){
     short amount_programs = 1 + amount_chars(argv,'|');
     char ** path_to_programs = malloc(sizeof(char *) * amount_programs);
     short * amount_args = calloc(sizeof(short), amount_programs);
@@ -93,15 +99,7 @@ Task * parse_string(int id, int pid, char * pipe_flag, char * time, char *argv, 
 
    //$ ./client execute 3000 -p "prog-a arg-1 (...) arg-n | prog-b arg-1 (...) arg-n | prog-c arg-1 (...) arg-n"
 
-    Task * x = create_Task(id, pid, pipe_flag, amount_programs, path_to_programs, amount_args, args, time);
-
-    char * filename = malloc(sizeof(char) * 128);
-    snprintf(filename,128,"%s/done_tasks.bin",output_file);
-    int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-
-    lseek(done, 0, SEEK_END);
-    write(done, x, sizeof(Task));
-
+    Task * x = create_Task(pid,pipe_flag, amount_programs, path_to_programs, amount_args, args, time);
 
 
     for(int i = 0; i < amount_programs; i++) free(path_to_programs[i]);
@@ -126,7 +124,7 @@ void new_status(char * folder, int task_id, Task_Status estado){
     int fd = open(filename, O_RDWR | O_CREAT | O_APPEND, 0644), r; //r => read xd
     Task * tk = malloc(sizeof(Task));
     while ((r = read(fd, tk, sizeof(Task))) > 0){//le alguma coisa
-        if (tk->id == task_id) {
+        if (tk->id == task_id){
             tk->status = estado;
             lseek(fd, -sizeof(Task), SEEK_CUR);
             // lseek é uma chamada de sistema que é usada para alterar a posição do cursor de leitura ou gravação em um arquivo. Nesse caso, fd é o descritor de arquivo associado ao arquivo binário.

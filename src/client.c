@@ -42,18 +42,19 @@ int main(int argc, char* argv[]){
                     sprintf(pipe_name, "%d", pid);
                     mkfifo(pipe_name, 0600);
 
-                    Task *newTask = parse_string(0, pid, argv[3],argv[2], argv[4], "output_file");
+                    Task *newTask = parse_string(pid,argv[3],argv[2], argv[4]);
 
                     // // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
-                    int in = open("inbound", O_WRONLY);
+                    int in = open("server", O_WRONLY);
                     write(in, newTask, sizeof(Task));//manda a task para o server
 
                     //print_task_debug(newTask);
 
                     int out = open(pipe_name, O_RDONLY), idTask;
                     if (read(out, &idTask, sizeof(int)) > 0) {
-                        char ret[10];
+                        char ret[20];
                         sprintf(ret, "TASK %d Received", idTask);
+                        dup2(1,STDOUT_FILENO);
                         write(1, ret, sizeof(ret));
                     }
             }

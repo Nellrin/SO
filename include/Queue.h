@@ -10,6 +10,7 @@ typedef struct TaskLinkedList
 
 } TTL ;
 
+Task* grabTask(TTL *queue) ;
 TTL* add_task(TTL* head, Task *data, char * order);
 TTL* remove_task(TTL* head, int id);
 Task * look_up_task(TTL* head, int id);

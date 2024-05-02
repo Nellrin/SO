@@ -12,7 +12,7 @@
 #include "../include/Task.h"
 #include "../include/Queue.h"
 
-Task * create_Task(int id, int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
+Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
 
     if (x == NULL) {
@@ -20,7 +20,7 @@ Task * create_Task(int id, int pid, char * pipe_flag, short amount_programs, cha
         exit(EXIT_FAILURE);
     }
 
-    x->id = id;
+    x->id = 0;
     x->pid = pid;
     x->pipe_flag = strdup(pipe_flag);
 
@@ -36,6 +36,17 @@ Task * create_Task(int id, int pid, char * pipe_flag, short amount_programs, cha
     x->status = SCHEDULED;
 
     return x;
+}
+void set_ids(Task * x, int id, char * output_file){
+    x->id = id;
+
+    char * filename = malloc(sizeof(char) * 128);
+    snprintf(filename,128,"%s/done_tasks.bin",output_file);
+    int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+    lseek(done, 0, SEEK_END);
+    write(done, x, sizeof(Task));
+    
 }
 void destroy_Task(Task * x){
     for(int i = 0; i< x->amount_programs; i++)
@@ -135,14 +146,6 @@ void print_Task_status(Task *x){
     sprintf(lista," \n");
 
     write(STDOUT_FILENO, lista, strlen(lista));
-}
-Task* grabTask(TTL *queue) {
-    // Modificar el puntero original
-    Task* taskToExec = queue->task; // Nuevo valor del puntero
-    TTL *kill = queue;
-    queue = queue->next;
-    free(kill);
-    return taskToExec;
 }
 void print_task_debug(Task * x){
     printf("\n\n──────────────────────────────────\n");

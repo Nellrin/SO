@@ -8,7 +8,16 @@
 #include <string.h>
 
 
-#include "Queue.h"
+#include "../include/Queue.h"
+
+Task* grabTask(TTL *queue) {
+    // Modificar el puntero original
+    Task* taskToExec = queue->task; // Nuevo valor del puntero
+    TTL *kill = queue;
+    queue = queue->next;
+    free(kill);
+    return taskToExec;
+}
 
 static TTL* create_node(Task *data){
     TTL* newNode = malloc(sizeof(TTL));

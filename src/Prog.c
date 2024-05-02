@@ -39,7 +39,6 @@ void execute_single_Prog(Prog * x){
 }
 
 void execute_multiple_Prog(Prog ** x, int amount){
-    int status;
     int pipes[amount - 1][2];
     
     for (int i = 0; i < amount - 1; i++)
