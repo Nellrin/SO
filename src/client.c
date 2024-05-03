@@ -19,8 +19,8 @@
 int main(int argc, char* argv[]){
 
 
- 	if (argc < 2 || 5 < argc || (argc != 2 && argc != 5)){
-		printf("Missing argument.\n");
+ 	if (argc != 2 || argc != 5){
+		perror("Missing argument.\n");
 		_exit(1);
 	}
 
@@ -41,20 +41,24 @@ int main(int argc, char* argv[]){
                     char pipe_name[10];
                     sprintf(pipe_name, "%d", pid);
                     mkfifo(pipe_name, 0600);
+                    char buff[1024];
+                    sprintf(buff, "%d %s %s \"%s\"", pid, argv[3],argv[2], argv[4]);
+                    //printf("%s\n", buff);
 
-                    Task *newTask = parse_string(pid,argv[3],argv[2], argv[4]);
+                    //Task *newTask = parse_string(pid,argv[3],argv[2], argv[4]);
 
                     // // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
                     int in = open("server", O_WRONLY);
-                    write(in, newTask, sizeof(Task));//manda a task para o server
+                    write(in, buff, 1024);//manda a task para o server
 
                     //print_task_debug(newTask);
 
                     int out = open(pipe_name, O_RDONLY), idTask;
                     if (read(out, &idTask, sizeof(int)) > 0) {
+                        //printf("entrei no if\n");
                         char ret[20];
-                        sprintf(ret, "TASK %d Received", idTask);
-                        dup2(1,STDOUT_FILENO);
+                        sprintf(ret, "TASK %d Received\n", idTask);
+                        //dup2(1,STDOUT_FILENO);
                         write(1, ret, sizeof(ret));
                     }
             }

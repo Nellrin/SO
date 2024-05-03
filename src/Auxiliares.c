@@ -9,6 +9,25 @@
 
 #include "../include/Task.h"
 
+char *remove_quotes(const char *input) {
+    size_t input_length = strlen(input);
+    char *output = (char *)malloc(input_length + 1); // +1 para o caractere nulo no final
+    if (output == NULL) {
+        // Tratar erro de alocação de memória
+        return NULL;
+    }
+
+    size_t j = 0;
+    for (size_t i = 0; i < input_length; i++) {
+        if (input[i] != '\"') {
+            output[j++] = input[i];
+        }
+    }
+    output[j] = '\0'; // Adiciona o caractere nulo ao final da string
+
+    return output;
+}
+
 int amount_chars(char * string, char c){
     int amount = 0;
 

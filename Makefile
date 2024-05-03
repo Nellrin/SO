@@ -5,7 +5,7 @@ all: folders orchestrator client
 orchestrator: bin/orchestrator
 client: bin/client
 folders:
-	@mkdir -p src include obj bin tmp output_folder
+	@mkdir -p src include obj bin tmp
 
 bin/orchestrator: obj/orchestrator.o obj/Prog.o obj/Task.o obj/Queue.o obj/Auxiliares.o
 	$(CC) $(LDFLAGS) $^ -o $@

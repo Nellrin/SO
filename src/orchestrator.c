@@ -39,9 +39,9 @@ int main (int argc, char * argv []){
     Big_Guy->log = 0;
 
 
-            char * filename = malloc(sizeof(char) * 128);
-            snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
-            int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            // char * filename = malloc(sizeof(char) * 128);
+            // snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
+            // int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
 
 // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n"
@@ -49,30 +49,77 @@ int main (int argc, char * argv []){
     mkfifo ("server" , 0600);
 
     int x, fdout = 0;
-    int fdin = open("server" , O_WRONLY) ;
+    int fdin = open("server" , O_RDONLY) ;
 
     Task * task = malloc(sizeof(Task));
     char client_path[10];
+    char buff[1024];
+    char *buff_cpy;
+    int pid;
+    char * pipe_flag, *time, *args, *token;
+
+    mkdir(Big_Guy->output_folder, 0700);
+    char * filename = malloc(sizeof(char) * 128);
+    sprintf(filename, "%s/%d.txt", Big_Guy->output_folder, 10);
+    printf("Caminho do arquivo: %s\n", filename); // Verifique o caminho do arquivo
+
+    int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (output == -1) {
+        perror("Erro ao abrir o arquivo");
+        free(filename);
+        return 1;
+    }
+    else printf("todo bien\n");
 
     ssize_t r;
 
-    while((r = read (fdin , task, sizeof (Task))) > 0){
+    while((r = read (fdin , buff, 1024)) > 0){
+        //printf("li alguma coisa\n");
+        //printf("%s\n", buff);
+        buff_cpy = strdup(buff);
         
+        for(int i = 0; i < 3 && (token = strsep(&buff_cpy, " ")) != NULL; i++) {
+            switch(i) {
+                case 0:
+                    pid = atoi(token);
+                    break;
+                case 1:
+                    pipe_flag = strdup(token);
+                    break;
+                case 2:
+                    time = strdup(token);
+                    break;
+            }
+        }
+        token = strsep(&buff_cpy, "\0");
+        //printf("%s\n", token);
+        args = strdup(remove_quotes(token));
+        //printf("%s\n", args);
+
+        task = parse_string(pid,pipe_flag,time, args);
+        print_task_debug(task);
+
+        free(buff_cpy);
+        free(pipe_flag);
+        free(time);
+        free(args);
+
         Big_Guy->log++;
         x = Big_Guy->log;
         set_ids(task,Big_Guy->log,Big_Guy->output_folder);
         sprintf(client_path, "%d", task->pid);
-        fdout = open(client_path , O_RDONLY);
+        fdout = open(client_path , O_WRONLY);
         write(fdout, &x, sizeof(int));
+        //printf("check\n");
 
 
-        if(/*blah blah blah*/ 0){
-            /*imprime status*/
-        }
+        // if(/*blah blah blah*/ 0){
+        //     /*imprime status*/
+        // }
 
-        else{
-            lseek(done, 0, SEEK_END);
-            write(done, task, sizeof(Task));
+        // else{
+        //     // lseek(done, 0, SEEK_END);
+        //     // write(done, task, sizeof(Task));
 
             if (Big_Guy->active_tasks < Big_Guy->parallel_tasks){
                 Big_Guy->active_tasks++;
@@ -80,7 +127,8 @@ int main (int argc, char * argv []){
                     //atualizar estado da tarefa no ficheiro bin como: executing
                     new_status(Big_Guy->output_folder, task->id, EXECUTING);
 
-                    execute_Task(task, argv[1]);
+                    execute_Task(task, Big_Guy->output_folder);
+                    //printf("executou a tarefa\n");
 
                     // atualizar estado da tarefa no ficheiro bin como: finish
                     new_status(Big_Guy->output_folder, task->id, COMPLETED);
@@ -103,7 +151,7 @@ int main (int argc, char * argv []){
             else
             Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
-        }
+        //}
     }
         //saiu do fifo
     return 0;

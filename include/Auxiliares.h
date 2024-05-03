@@ -7,5 +7,6 @@
 int amount_chars(char * string, char c);
 Task * parse_string(int pid, char * pipe_flag, char * time, char *argv);
 void new_status(char * folder, int task_id, Task_Status estado);
+char *remove_quotes(const char *input);
 
 #endif
