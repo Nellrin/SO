@@ -93,26 +93,18 @@ void execute_Task(Task * x, char * output_file){
             // lseek(done, 0, SEEK_END);
             // write(done, x, sizeof(Task));
 }
-Task **get_Tasks() {
+Task **get_Tasks(char * output_folder, int amount) {
     
     int fd = open("output_folder/done.bin", O_RDONLY | O_CREAT);
 
     lseek(fd, 0, SEEK_SET);
 
-    Task ** list_of_tasks = NULL;
+    Task ** list_of_tasks = malloc(sizeof(Task *) * amount);
     
 
     Task *task = malloc(sizeof(Task));
 
-    for(int num_tasks = 0; read(fd, task, sizeof(Task)) > 0; num_tasks++) {
-        list_of_tasks = realloc(list_of_tasks, (num_tasks + 1) * sizeof(Task *));
-        if (list_of_tasks == NULL) {
-            perror("Ficheiro bem mid ngl");
-            close(fd);
-            return NULL;
-        }
-
-        task = malloc(sizeof(Task));
+    for(int num_tasks = 0; read(fd, task, sizeof(Task)) > 0; num_tasks++){
         list_of_tasks[num_tasks] = task;
     }
 

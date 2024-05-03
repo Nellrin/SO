@@ -37,6 +37,6 @@ void set_ids(Task * x, int id, char * output_file);
 void destroy_Task(Task *Task);
 void execute_Task(Task * x, char * output_file);
 void print_Task_status(Task *Task);
-Task **get_Tasks();
+Task **get_Tasks(char * output_folder, int amount);
 void print_task_debug(Task * x);
 #endif

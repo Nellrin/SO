@@ -55,7 +55,7 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
     sprintf(filename, "%s/%d.txt", output_file, id);
     int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
-    // dup2(output, STDOUT_FILENO);
+    dup2(output, STDERR_FILENO);
     // fsync(STDOUT_FILENO);
 
     for (int i = 0; i < amount - 1; i++)

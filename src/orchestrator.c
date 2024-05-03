@@ -71,10 +71,21 @@ int main (int argc, char * argv []){
     while(active)
     while((r = read (fdin , buff, 1024)) > 0){
 
-        if(!strcmp(buff,"BREAK"))
-        active--;
+        if(!strcmp(buff,"BREAK")){
+            active--;
+            continue;
+        }
 
-        else{
+        if(!strcmp(buff,"STATUS")){
+            Task ** x = get_Tasks(Big_Guy->output_folder,Big_Guy->log);
+            for(int i = 0; i < Big_Guy->log; i++){
+                print_Task_status(x[i]);
+                printf("\n");
+            }
+
+            continue;
+        }
+        
 
         buff_cpy = strdup(buff);
         
@@ -153,7 +164,6 @@ int main (int argc, char * argv []){
             Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
         //}
-        }
     }
         //saiu do fifo
     return 0;
