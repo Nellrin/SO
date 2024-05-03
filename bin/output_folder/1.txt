@@ -1,8 +1,0 @@
-fich1: -: Error de entrada/salida
-Usage: palavra [OPTION]... PATTERNS [FILE]...
-Pruebe 'palavra --help' para más información.
-      0       0       0
-fich1: -: Error de entrada/salida
-Usage: palavra [OPTION]... PATTERNS [FILE]...
-Pruebe 'palavra --help' para más información.
-      0       0       0

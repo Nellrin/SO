@@ -19,7 +19,7 @@
 int main(int argc, char* argv[]){
 
 
- 	if (argc != 2 || argc != 5){
+ 	if (argc < 2 || 5 < argc || (argc != 2 && argc != 5)){
 		perror("Missing argument.\n");
 		_exit(1);
 	}
