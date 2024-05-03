@@ -101,12 +101,14 @@ Task * parse_string(int pid, char * pipe_flag, char * time, char *argv){
                 // printf("%s\n",palavras[k]);
                 amount_args[i]++;
             }
+            amount_args[i]++;
 
-            args[i] = malloc(sizeof(char *) * amount_args[i]);
+            args[i] = malloc(sizeof(char *) * amount_args[i] + 1);
+            args[i][0] = strdup(path_to_programs[i]);
 
             int m = 0;
             for(int k = 0; k + j + 1 < amount_palavras && (!strcmp(palavras[k+j+1],"|") == 0); k++){
-                args[i][k] = strdup(palavras[1 + k + j]); m++;
+                args[i][k+1] = strdup(palavras[1 + k + j]); m++;
             }
                 //printf("%d\n", amount_args[i]);
             i++;

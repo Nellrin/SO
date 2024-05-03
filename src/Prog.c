@@ -22,12 +22,22 @@ Prog * create_Prog(char * path_to_program, short amount_args, char ** args){
 
     return x;
 }
-void execute_single_Prog(Prog * x){
+void execute_single_Prog(Prog * x, int id, char * output_file){
+
+    char * filename = malloc(sizeof(char) * 128);
+    sprintf(filename, "%s/%d.txt", output_file, id);
+    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    // printf("%s\n\n",filename);
 
     pid_t pid = fork();
     int status;
+
     
     if(pid == 0){
+
+    dup2(output, STDERR_FILENO);
+    dup2(output, STDOUT_FILENO);
         execvp(x->path_to_program, x->args);
         perror(x->path_to_program); 
         _exit(1);
@@ -38,16 +48,36 @@ void execute_single_Prog(Prog * x){
 
 }
 
-void execute_multiple_Prog(Prog ** x, int amount){
+void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
     int pipes[amount - 1][2];
-    
+
+    char * filename = malloc(sizeof(char) * 128);
+    sprintf(filename, "%s/%d.txt", output_file, id);
+    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    // dup2(output, STDOUT_FILENO);
+    // fsync(STDOUT_FILENO);
+
     for (int i = 0; i < amount - 1; i++)
     pipe(pipes[i]);
 
+    dup2(output, STDOUT_FILENO);
+    close(output);
+
     for (int i = 0; i < amount; i++){
         if (fork() == 0){
+
+        for (int j = 0; j < amount; j++){
+            if(j != i && j != i - 1){
+                close(pipes[j][1]);
+                close(pipes[j][0]);
+            }
+        }
+
+            
             if (i < amount - 1){
                 close(pipes[i][0]);
+
                 dup2(pipes[i][1], STDOUT_FILENO);
                 close(pipes[i][1]);
             }
@@ -62,8 +92,12 @@ void execute_multiple_Prog(Prog ** x, int amount){
             perror(x[i]->path_to_program); 
             _exit(1);
         }
-        else
-        close(pipes[i][1]);
+        else{
+            if(i > 0){
+                close(pipes[i-1][1]);
+                // close(pipes[i-1][0]);
+            }
+        }
         
     }
     

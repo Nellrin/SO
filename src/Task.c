@@ -57,12 +57,7 @@ void destroy_Task(Task * x){
     free(x);
 }
 void execute_Task(Task * x, char * output_file){
-
     gettimeofday(&(x->start_time), NULL);
-
-        char * filename = malloc(sizeof(char) * 128);
-        sprintf(filename, "%s/%d.txt", output_file, x->id);
-        int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
             x->status = EXECUTING;
 
@@ -73,19 +68,18 @@ void execute_Task(Task * x, char * output_file){
         
 
 
-    dup2(output, STDOUT_FILENO);
-    dup2(output, STDERR_FILENO);
+    // dup2(output, STDERR_FILENO);
+
+    // printf("flag = %s\n %s = %d\n\n",x->pipe_flag,x->pipe_flag, !strcmp(x->pipe_flag,"-u"));
 
 
         if(!strcmp(x->pipe_flag,"-u"))
-        execute_single_Prog(x->programs[0]);
+        execute_single_Prog(x->programs[0],x->id, output_file);
 
         if(!strcmp(x->pipe_flag,"-p"))
-        execute_multiple_Prog(x->programs, x->amount_programs);
+        execute_multiple_Prog(x->programs, x->amount_programs,x->id,output_file);
 
 
-        close(output);
-        free(filename);
 
 
         struct timeval current_time;

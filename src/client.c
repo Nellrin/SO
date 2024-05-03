@@ -24,15 +24,10 @@ int main(int argc, char* argv[]){
 		_exit(1);
 	}
 
+    int in = open("server", O_WRONLY);
     switch(argc) {
         case 2:
-            if (!strcmp(argv[1],"STATUS")) {
-                //printf("recibi status\n");
-
-
-                
-            }
-            else perror("Não foi possivel interrogar os programas, dado que o argumento número 1 recebido não foi: status\n");
+            write(in, argv[1], 1024);//manda a task para o server
             break;
         case 5:
             if (!strcmp(argv[1],"EXECUTE") && (!strcmp(argv[3],"-u") || !strcmp(argv[3],"-p"))) {
@@ -48,7 +43,6 @@ int main(int argc, char* argv[]){
                     //Task *newTask = parse_string(pid,argv[3],argv[2], argv[4]);
 
                     // // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n
-                    int in = open("server", O_WRONLY);
                     write(in, buff, 1024);//manda a task para o server
 
                     //print_task_debug(newTask);

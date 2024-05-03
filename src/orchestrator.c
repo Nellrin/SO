@@ -38,6 +38,14 @@ int main (int argc, char * argv []){
     Big_Guy->active_tasks = 0;
     Big_Guy->log = 0;
 
+    if(fork() == 0){
+        mkdir(Big_Guy->output_folder, 0700);
+        char * filename = malloc(sizeof(char) * 128);
+        sprintf(filename, "%s/done_tasks.bin", Big_Guy->output_folder);
+
+        open(filename, O_CREAT, 0644);
+        _exit(0);
+    }
 
             // char * filename = malloc(sizeof(char) * 128);
             // snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
@@ -55,27 +63,19 @@ int main (int argc, char * argv []){
     char client_path[10];
     char buff[1024];
     char *buff_cpy;
-    int pid;
+    int pid, active = 1;
     char * pipe_flag, *time, *args, *token;
 
-    mkdir(Big_Guy->output_folder, 0700);
-    char * filename = malloc(sizeof(char) * 128);
-    sprintf(filename, "%s/%d.txt", Big_Guy->output_folder, 10);
-    printf("Caminho do arquivo: %s\n", filename); // Verifique o caminho do arquivo
-
-    int output = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if (output == -1) {
-        perror("Erro ao abrir o arquivo");
-        free(filename);
-        return 1;
-    }
-    else printf("todo bien\n");
 
     ssize_t r;
-
+    while(active)
     while((r = read (fdin , buff, 1024)) > 0){
-        //printf("li alguma coisa\n");
-        //printf("%s\n", buff);
+
+        if(!strcmp(buff,"BREAK"))
+        active--;
+
+        else{
+
         buff_cpy = strdup(buff);
         
         for(int i = 0; i < 3 && (token = strsep(&buff_cpy, " ")) != NULL; i++) {
@@ -91,6 +91,7 @@ int main (int argc, char * argv []){
                     break;
             }
         }
+
         token = strsep(&buff_cpy, "\0");
         //printf("%s\n", token);
         args = strdup(remove_quotes(token));
@@ -152,6 +153,7 @@ int main (int argc, char * argv []){
             Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
         //}
+        }
     }
         //saiu do fifo
     return 0;
