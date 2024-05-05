@@ -106,11 +106,60 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
         close(pipes[i][1]);
     }
 }
-
 void destroy_Prog(Prog * x){
     free(x->path_to_program);
     for(int i = 0; i<x->amount_args; i++)
     free(x->args[i]);
     free(x->args);
     free(x);
+}
+
+
+/*
+typedef struct {
+    char * path_to_program;
+    
+    short amount_args;
+    char ** args;
+} Prog;
+*/
+
+void write_Prog(Prog * x, int file){
+    size_t path_size = strlen(x->path_to_program) + 1;
+    write(file, &path_size, sizeof(size_t));
+    write(file, x->path_to_program, path_size);
+
+    write(file, &(x->amount_args), sizeof(short));
+
+    for(int i = 0; i < x->amount_args; i++){
+        size_t size_arg = strlen(x->args[i]) + 1;
+        write(file, &size_arg, sizeof(size_t));
+        write(file, x->args[i], size_arg);
+    }
+}
+
+Prog * read_Prog(int file){
+    Prog * x = malloc(sizeof(Prog));
+
+    size_t path_size;
+    read(file, &path_size, sizeof(size_t));
+
+    x->path_to_program = malloc(path_size);
+    read(file, x->path_to_program, path_size);
+
+
+    read(file, &(x->amount_args), sizeof(short));
+
+
+    x->args = malloc(sizeof(char *) * x->amount_args);
+    for (int i = 0; i < x->amount_args; i++) {
+        size_t size_arg;
+        read(file, &size_arg, sizeof(size_t));
+
+        x->args[i] = malloc(size_arg);
+        read(file, x->args[i], size_arg);
+    }
+
+
+    return x;
 }

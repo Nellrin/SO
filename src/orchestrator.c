@@ -51,19 +51,17 @@ int main (int argc, char * argv []){
             // snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
             // int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
-
+// $ ./orchestrator output_folder 8 FCFS
 // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n"
 
     mkfifo ("server" , 0600);
 
-    int x, fdout = 0;
+    int x, fdout = 0, pid, active = 1;
     int fdin = open("server" , O_RDONLY) ;
 
     Task * task = malloc(sizeof(Task));
-    char client_path[10];
-    char buff[1024];
-    char *buff_cpy;
-    int pid, active = 1;
+    char client_path[10], buff[1024];
+    char * buff_cpy;
     char * pipe_flag, *time, *args, *token;
 
 
@@ -77,12 +75,21 @@ int main (int argc, char * argv []){
         }
 
         if(!strcmp(buff,"STATUS")){
-            Task ** x = get_Tasks(Big_Guy->output_folder,Big_Guy->log);
-            for(int i = 0; i < Big_Guy->log; i++){
-                print_Task_status(x[i]);
-                printf("\n");
-            }
+            Task ** x = malloc(sizeof(Task *) * Big_Guy->log); 
+            x = get_Tasks(Big_Guy->output_folder,Big_Guy->log);
+            char * list = malloc(sizeof(char) * Big_Guy->log * 1024);
 
+            for(int i = 0; i < Big_Guy->log; i++){
+            // printf("SAFE\n");
+                // char * z = NULL;
+
+                print_task_debug(x[i]);
+                // sprintf(list,"%s\n%s",list,z);
+                // free(z);
+            }
+            printf("SAFE\n");
+
+            free(list);
             continue;
         }
         
@@ -104,9 +111,7 @@ int main (int argc, char * argv []){
         }
 
         token = strsep(&buff_cpy, "\0");
-        //printf("%s\n", token);
         args = strdup(remove_quotes(token));
-        //printf("%s\n", args);
 
         task = parse_string(pid,pipe_flag,time, args);
         print_task_debug(task);
@@ -117,51 +122,42 @@ int main (int argc, char * argv []){
         free(args);
 
         Big_Guy->log++;
+
         x = Big_Guy->log;
         set_ids(task,Big_Guy->log,Big_Guy->output_folder);
         sprintf(client_path, "%d", task->pid);
         fdout = open(client_path , O_WRONLY);
         write(fdout, &x, sizeof(int));
-        //printf("check\n");
 
+        if (Big_Guy->active_tasks < Big_Guy->parallel_tasks){
+            Big_Guy->active_tasks++;
+            if(fork() == 0){
+                //atualizar estado da tarefa no ficheiro bin como: executing
+                new_status(Big_Guy->output_folder, task->id, EXECUTING);
 
-        // if(/*blah blah blah*/ 0){
-        //     /*imprime status*/
-        // }
+                execute_Task(task, Big_Guy->output_folder);
+                //printf("executou a tarefa\n");
 
-        // else{
-        //     // lseek(done, 0, SEEK_END);
-        //     // write(done, task, sizeof(Task));
-
-            if (Big_Guy->active_tasks < Big_Guy->parallel_tasks){
-                Big_Guy->active_tasks++;
-                if(fork() == 0){
-                    //atualizar estado da tarefa no ficheiro bin como: executing
+                // atualizar estado da tarefa no ficheiro bin como: finish
+                new_status(Big_Guy->output_folder, task->id, COMPLETED);
+                
+                
+                while(Big_Guy->queue != NULL){
                     new_status(Big_Guy->output_folder, task->id, EXECUTING);
-
-                    execute_Task(task, Big_Guy->output_folder);
-                    //printf("executou a tarefa\n");
-
-                    // atualizar estado da tarefa no ficheiro bin como: finish
+                    execute_Task(grabTask(Big_Guy->queue), argv[1]) ;
                     new_status(Big_Guy->output_folder, task->id, COMPLETED);
-                    
-                    
-                    while(Big_Guy->queue != NULL){
-                        new_status(Big_Guy->output_folder, task->id, EXECUTING);
-                        execute_Task(grabTask(Big_Guy->queue), argv[1]) ;
-                        new_status(Big_Guy->output_folder, task->id, COMPLETED);
-                    }
-
-                    Big_Guy->active_tasks--;
-                    _exit (0) ;
                 }
-                // else //PAI
-                // {
-                //     //Handle Daddy Issues
-                // }
+
+                Big_Guy->active_tasks--;
+                _exit (0) ;
             }
-            else
-            Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
+            // else //PAI
+            // {
+            //     //Handle Daddy Issues
+            // }
+        }
+        else
+        Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
         //}
     }

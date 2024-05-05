@@ -10,6 +10,7 @@
         "time.h": "c",
         "wait.h": "c",
         "stdlib.h": "c",
-        "auxiliares.h": "c"
+        "auxiliares.h": "c",
+        "prog.h": "c"
     }
 }

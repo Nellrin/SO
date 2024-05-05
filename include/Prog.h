@@ -14,4 +14,7 @@ void destroy_Prog(Prog * x);
 void execute_single_Prog(Prog * x, int id, char * output_file);
 void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file);
 
+void write_Prog(Prog * x, int file);
+Prog * read_Prog(int file);
+
 #endif
