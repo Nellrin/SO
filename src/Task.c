@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 
 #include "../include/Task.h"
+#include "../include/Prog.h"
 #include "../include/Queue.h"
 
 Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
@@ -70,10 +71,6 @@ void execute_Task(Task * x, char * output_file){
         
 
 
-    // dup2(output, STDERR_FILENO);
-
-    // printf("flag = %s\n %s = %d\n\n",x->pipe_flag,x->pipe_flag, !strcmp(x->pipe_flag,"-u"));
-
 
         if(!strcmp(x->pipe_flag,"-u"))
         execute_single_Prog(x->programs[0],x->id, output_file);
@@ -129,16 +126,16 @@ char * print_Task_status(Task *x){
     snprintf(lista,256*4,"%d %s", x->id, x->programs[0]->path_to_program);
 
     for (int i = 1; i < x->amount_programs; ++i) 
-    sprintf(lista," | %s", x->programs[i]->path_to_program);
+    sprintf(lista + strlen(lista)," | %s", x->programs[i]->path_to_program);
 
     if(x->status == COMPLETED){
         double ms = x->real_duration.tv_sec * 1000;
-        ms += x->real_duration.tv_usec / 1000;
+        ms += x->real_duration.tv_usec / 1000.0;
    
-        sprintf(lista," %d ms", (int) ms);
+        sprintf(lista + strlen(lista)," %d ms", (int) ms);
     }
 
-    sprintf(lista," \n");
+    sprintf(lista + strlen(lista)," \n");
 
     return lista;
 }
@@ -213,7 +210,7 @@ Task * read_Task(int file){
 
     read(file, &(x->amount_programs), sizeof(short));
 
-    printf("%d\n\n",x->amount_programs);
+    // printf("%d\n\n",x->amount_programs);
 
     
     x->programs = malloc(sizeof(Prog) * x->amount_programs);

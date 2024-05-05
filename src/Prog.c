@@ -56,18 +56,17 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
     int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
     dup2(output, STDERR_FILENO);
-    // fsync(STDOUT_FILENO);
 
-    for (int i = 0; i < amount - 1; i++)
+    for(int i = 0; i < amount - 1; i++)
     pipe(pipes[i]);
 
     dup2(output, STDOUT_FILENO);
     close(output);
 
-    for (int i = 0; i < amount; i++){
-        if (fork() == 0){
+    for(int i = 0; i < amount; i++){
+        if(fork() == 0){
 
-        for (int j = 0; j < amount; j++){
+        for(int j = 0; j < amount; j++){
             if(j != i && j != i - 1){
                 close(pipes[j][1]);
                 close(pipes[j][0]);
@@ -75,14 +74,14 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
         }
 
             
-            if (i < amount - 1){
+            if(i < amount - 1){
                 close(pipes[i][0]);
 
                 dup2(pipes[i][1], STDOUT_FILENO);
                 close(pipes[i][1]);
             }
 
-            if (i > 0) {
+            if(i > 0){
                 close(pipes[(i - 1)][1]);
                 dup2(pipes[(i - 1)][0], STDIN_FILENO);
                 close(pipes[(i - 1)][0]);
@@ -93,10 +92,8 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
             _exit(1);
         }
         else{
-            if(i > 0){
-                close(pipes[i-1][1]);
-                // close(pipes[i-1][0]);
-            }
+            if(i > 0)
+            close(pipes[i-1][1]);
         }
         
     }
@@ -130,14 +127,14 @@ void write_Prog(Prog * x, int file){
     write(file, x->path_to_program, path_size);
 
     write(file, &(x->amount_args), sizeof(short));
-        printf("%ld %d\n",sizeof(short),x->amount_args);
+        // printf("%ld %d\n",sizeof(short),x->amount_args);
 
     for(int i = 0; i < x->amount_args; i++){
         size_t size_arg = strlen(x->args[i]) + 1;
         write(file, &size_arg, sizeof(size_t));
         write(file, x->args[i], size_arg);
 
-        printf("%ld %s\n",size_arg,x->args[i]);
+        // printf("%ld %s\n",size_arg,x->args[i]);
     }
 }
 

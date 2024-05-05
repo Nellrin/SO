@@ -22,12 +22,7 @@ typedef struct orchestrator{
     char * sched_policy;
 } Server ;
 
-
-
-int main (int argc, char * argv []){
-    if (argc != 4)
-    perror("Invalid Number of Arguments");
-
+Server * orchestrator_set_up(char * argv[]){
     Server * Big_Guy = malloc(sizeof(Server));
 
     Big_Guy->output_folder = strdup(argv[1]);
@@ -53,7 +48,7 @@ int main (int argc, char * argv []){
     if(y > 0){
         lseek(z, 0, SEEK_SET);
         read(z,&(Big_Guy->log),sizeof(int));
-        printf("%d\n\n", Big_Guy->log);
+        // printf("%d\n\n", Big_Guy->log);
     }
 
     else{
@@ -63,17 +58,27 @@ int main (int argc, char * argv []){
 
     close(z);
 
-    printf("%d\n\n", Big_Guy->log);
+    return Big_Guy;
+}
 
 
-            // char * filename = malloc(sizeof(char) * 128);
-            // snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
-            // int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+int main (int argc, char * argv []){
+    if (argc != 4)
+    perror("Invalid Number of Arguments");
+
+
+
+    Server * Big_Guy = orchestrator_set_up(argv);
+
+
+    // printf("%d\n\n", Big_Guy->log);
+
+
 
 // $ ./orchestrator output_folder 8 FCFS
 // $ ./client execute 100 -u "prog-a arg-1 (...) arg-n"
 
-    mkfifo ("server" , 0600);
+    mkfifo("server" , 0600);
 
     int x, fdout = 0, pid, active = 1;
     int fdin = open("server" , O_RDONLY) ;
@@ -93,22 +98,47 @@ int main (int argc, char * argv []){
             continue;
         }
 
-        if(!strcmp(buff,"STATUS")){
-            Task ** x = get_Tasks(Big_Guy->output_folder, Big_Guy->log);
-            char * list = malloc(sizeof(char) * Big_Guy->log * 1024);
+        if(!strncmp(buff,"STATUS", 6)){
 
-            for(int i = 0; i < Big_Guy->log; i++){
-            // printf("SAFE\n");
-                // char * z = NULL;
+                Task ** x = get_Tasks(Big_Guy->output_folder, Big_Guy->log);
+                char * list = malloc(sizeof(char) * Big_Guy->log * 1024);
 
-                print_task_debug(x[i]);
-                // sprintf(list,"%s\n%s",list,z);
-                // free(z);
+                for(Task_Status status = EXECUTING; status <= COMPLETED; status++){
+
+                    switch(status){
+                        case EXECUTING:
+                            sprintf(list + strlen(list),"Executing\n");
+                            break;
+                        
+                        case SCHEDULED:
+                            sprintf(list + strlen(list),"\nScheduled\n");
+                            break;
+                        case COMPLETED:
+                            sprintf(list + strlen(list),"\nCompleted\n");
+                            break;
+                        }
+                        
+
+                            for(int i = 0; i < Big_Guy->log; i++)
+                                if(x[i]->status == status){
+                                    char * nova = print_Task_status(x[i]);
+                                    sprintf(list + strlen(list),"%s",nova);
+                                    free(nova);
+                                }
             }
 
-            printf("\n\n%d\n\n", Big_Guy->log);
 
+            const char * out = buff + 6;
+
+            fdout = open(out , O_WRONLY);
+            write(fdout, list, 1024);
+
+            for(int i = 0; i < Big_Guy->log; i++)
+            destroy_Task(x[i]);
+
+            free(x);
             free(list);
+
             continue;
         }
         
@@ -133,7 +163,7 @@ int main (int argc, char * argv []){
         args = strdup(remove_quotes(token));
 
         task = parse_string(pid,pipe_flag,time, args);
-        print_task_debug(task);
+        // print_task_debug(task);
 
         free(buff_cpy);
         free(pipe_flag);
