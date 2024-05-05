@@ -127,11 +127,11 @@ char * print_Task_status(Task *x){
     sprintf(lista + strlen(lista)," | %s", x->programs[i]->path_to_program);
 
     if(x->status == COMPLETED){
-    printf("Elapsed time: %d milliseconds\n",  (int) (x->real_duration));
+    // printf("Elapsed time: %d milliseconds\n",  (int) (x->real_duration));
         sprintf(lista + strlen(lista)," %d ms", (int) (x->real_duration));
     }
 
-    print_task_debug(x);
+    // print_task_debug(x);
 
     sprintf(lista + strlen(lista)," \n");
 
