@@ -159,22 +159,29 @@ Task * parse_string(int pid, char * pipe_flag, char * time, char *argv){
 // }
 
 
-void new_status(char *folder, int task_id, Task_Status estado) {
+void new_status(char *folder, int task_id, Task_Status estado){
     char *filename = malloc(sizeof(char) * 128);
     snprintf(filename, 128, "%s/done_tasks.bin", folder);
     int fd = open(filename, O_RDWR, 0644);
+
+    lseek(fd, sizeof(int), SEEK_SET);
+
     Task *temp_task;
+    off_t offset = sizeof(int);
 
     while((temp_task = read_Task(fd)) != NULL){
         if(temp_task->id == task_id){
             temp_task->status = estado;
-            
-            lseek(fd, -sizeof(Task), SEEK_CUR);
+
+            lseek(fd, offset, SEEK_SET);
             write_Task(temp_task, fd);
 
+            lseek(fd, 0, SEEK_END);
             destroy_Task(temp_task);
             break;
         }
+
+        offset = lseek(fd, 0, SEEK_CUR);
         destroy_Task(temp_task);
     }
 

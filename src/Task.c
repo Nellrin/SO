@@ -160,7 +160,7 @@ void print_task_debug(Task * x){
     printf("\nSTATUS: ");
     switch (x->status){
     case COMPLETED:
-        printf("COMPLETE\n%lds\n",x->estimated_duration.tv_sec);
+        printf("COMPLETE\n%lds\n",x->real_duration.tv_sec);
         break;
 
     case EXECUTING:

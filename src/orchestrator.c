@@ -152,13 +152,13 @@ int main (int argc, char * argv []){
             Big_Guy->active_tasks++;
             if(fork() == 0){
                 //atualizar estado da tarefa no ficheiro bin como: executing
-                // new_status(Big_Guy->output_folder, task->id, EXECUTING);
+                new_status(Big_Guy->output_folder, task->id, EXECUTING);
 
                 execute_Task(task, Big_Guy->output_folder);
                 //printf("executou a tarefa\n");
 
                 // atualizar estado da tarefa no ficheiro bin como: finish
-                // new_status(Big_Guy->output_folder, task->id, COMPLETED);
+                new_status(Big_Guy->output_folder, task->id, COMPLETED);
                 
                 
                 // while(Big_Guy->queue != NULL){
