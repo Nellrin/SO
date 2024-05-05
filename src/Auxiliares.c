@@ -140,7 +140,7 @@ Task * parse_string(int pid, char * pipe_flag, char * time, char *argv){
     return x;
 }
 
-void new_status(char *folder, int task_id, Task_Status estado){
+void new_status(char *folder, int task_id, Task_Status estado, long time){
     char *filename = malloc(sizeof(char) * 128);
     snprintf(filename, 128, "%s/done_tasks.bin", folder);
     int fd = open(filename, O_RDWR, 0644);
@@ -153,6 +153,7 @@ void new_status(char *folder, int task_id, Task_Status estado){
     while((temp_task = read_Task(fd)) != NULL){
         if(temp_task->id == task_id){
             temp_task->status = estado;
+            temp_task->real_duration = time;
 
             lseek(fd, offset, SEEK_SET);
             write_Task(temp_task, fd);

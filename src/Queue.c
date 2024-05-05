@@ -26,13 +26,6 @@ static TTL* create_node(Task *data){
     return newNode;
 }
 
-static int compare_time(const struct timeval *timeval1, const struct timeval *timeval2){
-    if (timeval1->tv_sec == timeval2->tv_sec)
-    return timeval1->tv_usec - timeval2->tv_usec;
-
-    return timeval1->tv_sec - timeval2->tv_sec;
-}
-
 TTL* add_task(TTL* head, Task *data, char * order){
     if(!strcmp(order,"FCFS")){
         TTL* newNode = create_node(data);
@@ -50,14 +43,14 @@ TTL* add_task(TTL* head, Task *data, char * order){
     if(!strcmp(order,"SJF")){
         TTL* newNode = create_node(data);
         
-        if (head == NULL || compare_time(&(head->task->estimated_duration), &(data->estimated_duration)) > 0) {
+        if (head == NULL || ((head->task->estimated_duration) > (data->estimated_duration))) {
             newNode->next = head;
             return newNode;
         }
         
         TTL* current = head;
 
-        while (current->next != NULL && compare_time(&(current->next->task->estimated_duration), &(data->estimated_duration)) < 0)
+        while (current->next != NULL && ((head->task->estimated_duration) < (data->estimated_duration)))
         current = current->next;
 
         newNode->next = current->next;

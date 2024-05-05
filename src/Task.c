@@ -10,6 +10,7 @@
 #include "../include/Task.h"
 #include "../include/Prog.h"
 #include "../include/Queue.h"
+#include "../include/Auxiliares.h"
 
 Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
@@ -23,8 +24,8 @@ Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** pat
     x->pid = pid;
     x->pipe_flag = strdup(pipe_flag);
 
-    x->estimated_duration.tv_sec = strtod(estimated_duration,NULL) / 1000;
-    x->estimated_duration.tv_usec = (((int) strtod(estimated_duration,NULL)) % 1000) * 1000;
+    x->estimated_duration = strtod(estimated_duration,NULL);
+    x->real_duration = 0;
 
     x->programs = malloc(sizeof(Prog *) * amount_programs);
     x->amount_programs = amount_programs;
@@ -59,18 +60,12 @@ void destroy_Task(Task * x){
     free(x->pipe_flag);
     free(x);
 }
-void execute_Task(Task * x, char * output_file){
-    gettimeofday(&(x->start_time), NULL);
+long execute_Task(Task * x, char * output_file){
+    
+    struct timeval start_time, current_time, result;
+    gettimeofday(&start_time, NULL);
 
             x->status = EXECUTING;
-
-            // snprintf(filename,128,"%s/done_tasks.bin",output_file);
-            // int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            // lseek(done, 0, SEEK_END);
-            // write(done, x, sizeof(Task));
-        
-
-
 
         if(!strcmp(x->pipe_flag,"-u"))
         execute_single_Prog(x->programs[0],x->id, output_file);
@@ -79,17 +74,20 @@ void execute_Task(Task * x, char * output_file){
         execute_multiple_Prog(x->programs, x->amount_programs,x->id,output_file);
 
 
+    gettimeofday(&current_time, NULL);
 
 
-        struct timeval current_time;
-        gettimeofday(&current_time, NULL);
-        timersub(&current_time, &(x->start_time), &(x->real_duration));
+        timersub(&current_time, &start_time, &result);
 
+        long res = (result.tv_sec * 1000) + (result.tv_usec / 1000);
+        // printf("Elapsed time: %d milliseconds\n", (int) x->real_duration);
+            // x->status = COMPLETED;
 
-            x->status = COMPLETED;
+        // print_task_debug(x);
 
             // lseek(done, 0, SEEK_END);
             // write(done, x, sizeof(Task));
+    return res;
 }
 Task **get_Tasks(char * output_folder, int amount){
 
@@ -100,6 +98,8 @@ Task **get_Tasks(char * output_folder, int amount){
 
     Task ** list_of_tasks = malloc(sizeof(Task *) * (amount));
     // printf("\n\n%d\n\n",(* amount));
+
+
     
 
     // Task *task = malloc(sizeof(Task));
@@ -111,10 +111,8 @@ Task **get_Tasks(char * output_folder, int amount){
 ///////////////////////////////////////////////////////////////////////////////
     lseek(fd, 4, SEEK_SET);
     
-    for (int i = 0; i < (amount); i++){
-        list_of_tasks[i] = read_Task(fd);
-        // print_task_debug(list_of_tasks[i]);
-    }
+    for (int i = 0; i < (amount); i++)
+    list_of_tasks[i] = read_Task(fd);
 
     close(fd);
 
@@ -129,11 +127,11 @@ char * print_Task_status(Task *x){
     sprintf(lista + strlen(lista)," | %s", x->programs[i]->path_to_program);
 
     if(x->status == COMPLETED){
-        double ms = x->real_duration.tv_sec * 1000;
-        ms += x->real_duration.tv_usec / 1000.0;
-   
-        sprintf(lista + strlen(lista)," %d ms", (int) ms);
+    printf("Elapsed time: %d milliseconds\n",  (int) (x->real_duration));
+        sprintf(lista + strlen(lista)," %d ms", (int) (x->real_duration));
     }
+
+    print_task_debug(x);
 
     sprintf(lista + strlen(lista)," \n");
 
@@ -157,15 +155,15 @@ void print_task_debug(Task * x){
     printf("\nSTATUS: ");
     switch (x->status){
     case COMPLETED:
-        printf("COMPLETE\n%lds\n",x->real_duration.tv_sec);
+        printf("COMPLETE\n%lds\n", x->real_duration);
         break;
 
     case EXECUTING:
-        printf("EXECUTING\n%lds\n",x->estimated_duration.tv_sec);
+        printf("EXECUTING\n%lds\n", x->estimated_duration);
         break;
 
     case SCHEDULED:
-        printf("SCHEDULED\n%lds\n",x->estimated_duration.tv_sec);
+        printf("SCHEDULED\n%lds\n",x->estimated_duration);
         break;
     
     default:
@@ -190,10 +188,10 @@ void write_Task(Task * x, int file){
     write_Prog(x->programs[i],file);
 
 
-    write(file, &(x->estimated_duration), sizeof(struct timeval));
-    write(file, &(x->real_duration), sizeof(struct timeval));
-    write(file, &(x->start_time), sizeof(struct timeval));
+    write(file, &(x->estimated_duration), sizeof(long));
+    write(file, &(x->real_duration), sizeof(long));
     write(file, &(x->status), sizeof(Task_Status));
+
 }
 Task * read_Task(int file){
     Task * x = malloc(sizeof(Task));
@@ -220,9 +218,8 @@ Task * read_Task(int file){
     x->programs[i] = read_Prog(file);
 
 
-    read(file, &(x->estimated_duration), sizeof(struct timeval));
-    read(file, &(x->real_duration), sizeof(struct timeval));
-    read(file, &(x->start_time), sizeof(struct timeval));
+    read(file, &(x->estimated_duration), sizeof(long));
+    read(file, &(x->real_duration), sizeof(long));
     read(file, &(x->status), sizeof(Task_Status));
 
 

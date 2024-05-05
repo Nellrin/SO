@@ -24,9 +24,8 @@ typedef struct {
     short amount_programs; 
     Prog ** programs;
         
-    struct timeval estimated_duration;
-    struct timeval real_duration;
-    struct timeval start_time;
+    long estimated_duration;
+    long real_duration;
 
     Task_Status status;
 } Task;
@@ -35,7 +34,7 @@ typedef struct {
 Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration);
 void set_ids(Task * x, int id, char * output_file);
 void destroy_Task(Task *Task);
-void execute_Task(Task * x, char * output_file);
+long execute_Task(Task * x, char * output_file);
 char * print_Task_status(Task *Task);
 Task **get_Tasks(char * output_folder, int amount);
 void print_task_debug(Task * x);

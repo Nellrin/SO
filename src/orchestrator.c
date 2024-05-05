@@ -107,7 +107,7 @@ int main (int argc, char * argv []){
 
                     switch(status){
                         case EXECUTING:
-                            sprintf(list + strlen(list),"Executing\n");
+                            snprintf(list,1024,"Executing\n");
                             break;
                         
                         case SCHEDULED:
@@ -122,6 +122,7 @@ int main (int argc, char * argv []){
                             for(int i = 0; i < Big_Guy->log; i++)
                                 if(x[i]->status == status){
                                     char * nova = print_Task_status(x[i]);
+
                                     sprintf(list + strlen(list),"%s",nova);
                                     free(nova);
                                 }
@@ -182,13 +183,13 @@ int main (int argc, char * argv []){
             Big_Guy->active_tasks++;
             if(fork() == 0){
                 //atualizar estado da tarefa no ficheiro bin como: executing
-                new_status(Big_Guy->output_folder, task->id, EXECUTING);
+                new_status(Big_Guy->output_folder, task->id, EXECUTING, task->real_duration);
 
-                execute_Task(task, Big_Guy->output_folder);
+                long time = execute_Task(task, Big_Guy->output_folder);
                 //printf("executou a tarefa\n");
 
                 // atualizar estado da tarefa no ficheiro bin como: finish
-                new_status(Big_Guy->output_folder, task->id, COMPLETED);
+                new_status(Big_Guy->output_folder, task->id, COMPLETED,time);
                 
                 
                 // while(Big_Guy->queue != NULL){
@@ -198,13 +199,15 @@ int main (int argc, char * argv []){
                 // }
 
                 // Big_Guy->active_tasks--;
-                _exit (0) ;
+                _exit(0);
             }
             // else //PAI
             // {
             //     //Handle Daddy Issues
             // }
         }
+
+
         // else
         // Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
