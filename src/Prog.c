@@ -130,11 +130,14 @@ void write_Prog(Prog * x, int file){
     write(file, x->path_to_program, path_size);
 
     write(file, &(x->amount_args), sizeof(short));
+        printf("%ld %d\n",sizeof(short),x->amount_args);
 
     for(int i = 0; i < x->amount_args; i++){
         size_t size_arg = strlen(x->args[i]) + 1;
         write(file, &size_arg, sizeof(size_t));
         write(file, x->args[i], size_arg);
+
+        printf("%ld %s\n",size_arg,x->args[i]);
     }
 }
 

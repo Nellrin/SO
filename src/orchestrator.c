@@ -38,14 +38,33 @@ int main (int argc, char * argv []){
     Big_Guy->active_tasks = 0;
     Big_Guy->log = 0;
 
+    char * filename = malloc(sizeof(char) * 128);
+    sprintf(filename, "%s/done_tasks.bin", Big_Guy->output_folder);    
+
     if(fork() == 0){
         mkdir(Big_Guy->output_folder, 0700);
-        char * filename = malloc(sizeof(char) * 128);
-        sprintf(filename, "%s/done_tasks.bin", Big_Guy->output_folder);
-
         open(filename, O_CREAT, 0644);
+
         _exit(0);
     }
+
+    int z = open(filename, O_RDWR, 0644), y = lseek(z, 0, SEEK_END);
+    
+    if(y > 0){
+        lseek(z, 0, SEEK_SET);
+        read(z,&(Big_Guy->log),sizeof(int));
+        printf("%d\n\n", Big_Guy->log);
+    }
+
+    else{
+        lseek(z, 0, SEEK_SET);
+        write(z,&(Big_Guy->log),sizeof(int));
+    }
+
+    close(z);
+
+    printf("%d\n\n", Big_Guy->log);
+
 
             // char * filename = malloc(sizeof(char) * 128);
             // snprintf(filename,128,"%s/done_tasks.bin",argv[1]);
@@ -75,8 +94,7 @@ int main (int argc, char * argv []){
         }
 
         if(!strcmp(buff,"STATUS")){
-            Task ** x = malloc(sizeof(Task *) * Big_Guy->log); 
-            x = get_Tasks(Big_Guy->output_folder,Big_Guy->log);
+            Task ** x = get_Tasks(Big_Guy->output_folder, Big_Guy->log);
             char * list = malloc(sizeof(char) * Big_Guy->log * 1024);
 
             for(int i = 0; i < Big_Guy->log; i++){
@@ -87,7 +105,8 @@ int main (int argc, char * argv []){
                 // sprintf(list,"%s\n%s",list,z);
                 // free(z);
             }
-            printf("SAFE\n");
+
+            printf("\n\n%d\n\n", Big_Guy->log);
 
             free(list);
             continue;
@@ -133,22 +152,22 @@ int main (int argc, char * argv []){
             Big_Guy->active_tasks++;
             if(fork() == 0){
                 //atualizar estado da tarefa no ficheiro bin como: executing
-                new_status(Big_Guy->output_folder, task->id, EXECUTING);
+                // new_status(Big_Guy->output_folder, task->id, EXECUTING);
 
                 execute_Task(task, Big_Guy->output_folder);
                 //printf("executou a tarefa\n");
 
                 // atualizar estado da tarefa no ficheiro bin como: finish
-                new_status(Big_Guy->output_folder, task->id, COMPLETED);
+                // new_status(Big_Guy->output_folder, task->id, COMPLETED);
                 
                 
-                while(Big_Guy->queue != NULL){
-                    new_status(Big_Guy->output_folder, task->id, EXECUTING);
-                    execute_Task(grabTask(Big_Guy->queue), argv[1]) ;
-                    new_status(Big_Guy->output_folder, task->id, COMPLETED);
-                }
+                // while(Big_Guy->queue != NULL){
+                //     new_status(Big_Guy->output_folder, task->id, EXECUTING);
+                //     execute_Task(grabTask(Big_Guy->queue), argv[1]) ;
+                //     new_status(Big_Guy->output_folder, task->id, COMPLETED);
+                // }
 
-                Big_Guy->active_tasks--;
+                // Big_Guy->active_tasks--;
                 _exit (0) ;
             }
             // else //PAI
@@ -156,8 +175,8 @@ int main (int argc, char * argv []){
             //     //Handle Daddy Issues
             // }
         }
-        else
-        Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
+        // else
+        // Big_Guy->queue = add_task(Big_Guy->queue, task, Big_Guy->sched_policy);
         
         //}
     }

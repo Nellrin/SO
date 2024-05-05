@@ -40,10 +40,13 @@ void set_ids(Task * x, int id, char * output_file){
 
     char * filename = malloc(sizeof(char) * 128);
     snprintf(filename,128,"%s/done_tasks.bin",output_file);
-    int done = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int done = open(filename, O_RDWR, 0644);
+
+    lseek(done,0,SEEK_SET);
+    write(done,&id,sizeof(int));
 
     lseek(done, 0, SEEK_END);
-    write(done, x, sizeof(Task));
+    write_Task(x,done);
 
     close(done);
 }
@@ -93,29 +96,27 @@ void execute_Task(Task * x, char * output_file){
 }
 Task **get_Tasks(char * output_folder, int amount){
 
-    char * folder = malloc(sizeof(char) * 512);
-    snprintf(folder,512,"%s/done_task.bin",output_folder);
+    char *folder = malloc(sizeof(char) * 512);
+    snprintf(folder, 512, "%s/done_tasks.bin", output_folder);
 
-    int fd = open(folder, O_RDONLY | O_CREAT);
+    int fd = open(folder, O_RDONLY);
 
-
-    Task ** list_of_tasks = malloc(sizeof(Task *) * amount);
-    printf("\n\n%d\n\n",amount);
+    Task ** list_of_tasks = malloc(sizeof(Task *) * (amount));
+    // printf("\n\n%d\n\n",(* amount));
     
 
     // Task *task = malloc(sizeof(Task));
 
-    // for(int num_tasks = 0; num_tasks < amount; num_tasks++){
+    // for(int num_tasks = 0; num_tasks < (* amount); num_tasks++){
     //     list_of_tasks[num_tasks] = task;
     //     read(fd, task, sizeof(Task));
     // }
 ///////////////////////////////////////////////////////////////////////////////
-    lseek(fd, 0, SEEK_SET);
+    lseek(fd, 4, SEEK_SET);
     
-    for (int i = 0; i < amount; i++){
-        list_of_tasks[i] = create_Task(0,NULL,0,NULL, NULL,NULL,NULL);
-        read(fd, list_of_tasks[i], sizeof(Task));
-        print_task_debug(list_of_tasks[i]);
+    for (int i = 0; i < (amount); i++){
+        list_of_tasks[i] = read_Task(fd);
+        // print_task_debug(list_of_tasks[i]);
     }
 
     close(fd);
@@ -159,15 +160,15 @@ void print_task_debug(Task * x){
     printf("\nSTATUS: ");
     switch (x->status){
     case COMPLETED:
-        printf("COMPLETE\n");
+        printf("COMPLETE\n%lds\n",x->estimated_duration.tv_sec);
         break;
 
     case EXECUTING:
-        printf("EXECUTING\n");
+        printf("EXECUTING\n%lds\n",x->estimated_duration.tv_sec);
         break;
 
     case SCHEDULED:
-        printf("SCHEDULED\n");
+        printf("SCHEDULED\n%lds\n",x->estimated_duration.tv_sec);
         break;
     
     default:
@@ -177,25 +178,25 @@ void print_task_debug(Task * x){
 }
 
 void write_Task(Task * x, int file){
-    write(file, &x->id, sizeof(int));
-    write(file, &x->pid, sizeof(int));
+    write(file, &(x->id), sizeof(int));
+    write(file, &(x->pid), sizeof(int));
 
 
     size_t pipe_flag_size = strlen(x->pipe_flag) + 1;
-    write(file, &pipe_flag_size, sizeof(size_t));
+    write(file, &(pipe_flag_size), sizeof(size_t));
     write(file, x->pipe_flag, pipe_flag_size);
 
 
-    write(file, &x->amount_programs, sizeof(short));
+    write(file, &(x->amount_programs), sizeof(short));
 
     for(int i = 0; i < x->amount_programs; i++)
     write_Prog(x->programs[i],file);
 
 
-    write(file, &x->estimated_duration, sizeof(struct timeval));
-    write(file, &x->real_duration, sizeof(struct timeval));
-    write(file, &x->start_time, sizeof(struct timeval));
-    write(file, &x->status, sizeof(Task_Status));
+    write(file, &(x->estimated_duration), sizeof(struct timeval));
+    write(file, &(x->real_duration), sizeof(struct timeval));
+    write(file, &(x->start_time), sizeof(struct timeval));
+    write(file, &(x->status), sizeof(Task_Status));
 }
 Task * read_Task(int file){
     Task * x = malloc(sizeof(Task));
@@ -211,6 +212,8 @@ Task * read_Task(int file){
 
 
     read(file, &(x->amount_programs), sizeof(short));
+
+    printf("%d\n\n",x->amount_programs);
 
     
     x->programs = malloc(sizeof(Prog) * x->amount_programs);
