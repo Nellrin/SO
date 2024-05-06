@@ -10,7 +10,7 @@
 
 #include "../include/Queue.h"
 
-Task* grabTask(TTL **queue) {
+Task* grabTask(TTL **queue){
     if (*queue == NULL) return NULL;
 
     Task* taskToExec = (*queue)->task; // Novo valor do ponteiro
@@ -19,15 +19,12 @@ Task* grabTask(TTL **queue) {
     free(kill);
     return taskToExec;
 }
-
-
 static TTL* create_node(Task *data){
     TTL* newNode = malloc(sizeof(TTL));
     newNode->task = data;
     newNode->next = NULL;
     return newNode;
 }
-
 TTL* add_task(TTL* head, Task *data, char * order){
     if(!strcasecmp(order,"FCFS")){
         TTL* newNode = create_node(data);
@@ -63,7 +60,6 @@ TTL* add_task(TTL* head, Task *data, char * order){
 
     return head;
 }
-
 TTL* remove_task(TTL* head, int id){
     if (head == NULL)
     return NULL;
@@ -92,7 +88,6 @@ TTL* remove_task(TTL* head, int id){
     }
     return head;
 }
-
 Task * look_up_task(TTL* head, int id){
     TTL* current = head;
 
@@ -106,10 +101,9 @@ Task * look_up_task(TTL* head, int id){
 
     return NULL;
 }
-
 void print_queue(TTL* head){
 
-    printf("+───────+\n"
+    printf("\n+───────+\n"
            "| Queue |\n"
            "+───────+\n");
     TTL* current = head;
@@ -122,7 +116,6 @@ void print_queue(TTL* head){
     printf("+───────+\n");
 
 }
-
 void free_queue(TTL* head){
     TTL* current = head;
     while (current != NULL) {

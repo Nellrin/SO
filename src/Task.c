@@ -15,11 +15,6 @@
 Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** path_to_programs, short * amount_args, char *** args, char * estimated_duration){
     Task * x = malloc(sizeof(Task));
 
-    if (x == NULL) {
-        perror("Não deu para alocar memória ... cringe");
-        exit(EXIT_FAILURE);
-    }
-
     x->id = 0;
     x->pid = pid;
     x->pipe_flag = strdup(pipe_flag);
@@ -38,14 +33,15 @@ Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** pat
     return x;
 }
 void set_ids(Task * x, int id, char * output_file){
-    x->id = id;
-
+    
     char * filename = malloc(sizeof(char) * 128);
     snprintf(filename,128,"%s/done_tasks.bin",output_file);
-    int done = open(filename, O_RDWR, 0644);
+    int done = open(filename, O_RDWR, 0644), y = id;;
+    
+    x->id = id;
 
     lseek(done,0,SEEK_SET);
-    write(done,&id,sizeof(int));
+    write(done,&y,sizeof(int));
 
     lseek(done, 0, SEEK_END);
     write_Task(x,done);
@@ -80,13 +76,8 @@ long execute_Task(Task * x, char * output_file){
         timersub(&current_time, &start_time, &result);
 
         long res = (result.tv_sec * 1000) + (result.tv_usec / 1000);
-        // printf("Elapsed time: %d milliseconds\n", (int) x->real_duration);
-            // x->status = COMPLETED;
 
-        // print_task_debug(x);
 
-            // lseek(done, 0, SEEK_END);
-            // write(done, x, sizeof(Task));
     return res;
 }
 Task **get_Tasks(char * output_folder, int amount){
@@ -97,18 +88,6 @@ Task **get_Tasks(char * output_folder, int amount){
     int fd = open(folder, O_RDONLY);
 
     Task ** list_of_tasks = malloc(sizeof(Task *) * (amount));
-    // printf("\n\n%d\n\n",(* amount));
-
-
-    
-
-    // Task *task = malloc(sizeof(Task));
-
-    // for(int num_tasks = 0; num_tasks < (* amount); num_tasks++){
-    //     list_of_tasks[num_tasks] = task;
-    //     read(fd, task, sizeof(Task));
-    // }
-///////////////////////////////////////////////////////////////////////////////
     lseek(fd, 4, SEEK_SET);
     
     for (int i = 0; i < (amount); i++)
@@ -127,11 +106,8 @@ char * print_Task_status(Task *x){
     sprintf(lista + strlen(lista)," | %s", x->programs[i]->path_to_program);
 
     if(x->status == COMPLETED){
-    // printf("Elapsed time: %d milliseconds\n",  (int) (x->real_duration));
         sprintf(lista + strlen(lista)," %d ms", (int) (x->real_duration));
     }
-
-    // print_task_debug(x);
 
     sprintf(lista + strlen(lista)," \n");
 
@@ -207,8 +183,6 @@ Task * read_Task(int file){
 
 
     read(file, &(x->amount_programs), sizeof(short));
-
-    // printf("%d\n\n",x->amount_programs);
 
     
     x->programs = malloc(sizeof(Prog) * x->amount_programs);

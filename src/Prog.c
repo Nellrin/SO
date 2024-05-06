@@ -26,13 +26,9 @@ void execute_single_Prog(Prog * x, int id, char * output_file){
 
     char * filename = malloc(sizeof(char) * 128);
     sprintf(filename, "%s/%d.txt", output_file, id);
-    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-
-    // printf("%s\n\n",filename);
+    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644), status;
 
     pid_t pid = fork();
-    int status;
-
     
     if(pid == 0){
 
@@ -40,56 +36,60 @@ void execute_single_Prog(Prog * x, int id, char * output_file){
     dup2(output, STDOUT_FILENO);
         execvp(x->path_to_program, x->args);
         perror(x->path_to_program); 
-        _exit(1);
+        _exit(0);
     }
     
     else
     waitpid(pid, &status, 0);
 
 }
-
 void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
-    int pipes[amount - 1][2];
 
     char * filename = malloc(sizeof(char) * 128);
     sprintf(filename, "%s/%d.txt", output_file, id);
-    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644), pipes[amount - 1][2];
+
+
 
     dup2(output, STDERR_FILENO);
+    dup2(output, STDOUT_FILENO);
+    close(output);
+
+
 
     for(int i = 0; i < amount - 1; i++)
     pipe(pipes[i]);
 
-    dup2(output, STDOUT_FILENO);
-    close(output);
+
+
 
     for(int i = 0; i < amount; i++){
+
         if(fork() == 0){
-
-        for(int j = 0; j < amount; j++){
-            if(j != i && j != i - 1){
-                close(pipes[j][1]);
-                close(pipes[j][0]);
-            }
-        }
-
-            
-            if(i < amount - 1){
-                close(pipes[i][0]);
-
-                dup2(pipes[i][1], STDOUT_FILENO);
-                close(pipes[i][1]);
+            for(int j = 0; j < amount; j++){
+                if(j != i && j != i - 1){
+                    close(pipes[j][1]);
+                    close(pipes[j][0]);
+                }
             }
 
-            if(i > 0){
-                close(pipes[(i - 1)][1]);
-                dup2(pipes[(i - 1)][0], STDIN_FILENO);
-                close(pipes[(i - 1)][0]);
-            }
+                
+                if(i < amount - 1){
+                    close(pipes[i][0]);
 
-            execvp(x[i]->path_to_program, x[i]->args);
-            perror(x[i]->path_to_program); 
-            _exit(1);
+                    dup2(pipes[i][1], STDOUT_FILENO);
+                    close(pipes[i][1]);
+                }
+
+                if(i > 0){
+                    close(pipes[(i - 1)][1]);
+                    dup2(pipes[(i - 1)][0], STDIN_FILENO);
+                    close(pipes[(i - 1)][0]);
+                }
+
+                execvp(x[i]->path_to_program, x[i]->args);
+                perror(x[i]->path_to_program); 
+                _exit(0);
         }
         else{
             if(i > 0)
@@ -110,34 +110,19 @@ void destroy_Prog(Prog * x){
     free(x->args);
     free(x);
 }
-
-
-/*
-typedef struct {
-    char * path_to_program;
-    
-    short amount_args;
-    char ** args;
-} Prog;
-*/
-
 void write_Prog(Prog * x, int file){
     size_t path_size = strlen(x->path_to_program) + 1;
     write(file, &path_size, sizeof(size_t));
     write(file, x->path_to_program, path_size);
 
     write(file, &(x->amount_args), sizeof(short));
-        // printf("%ld %d\n",sizeof(short),x->amount_args);
 
     for(int i = 0; i < x->amount_args; i++){
         size_t size_arg = strlen(x->args[i]) + 1;
         write(file, &size_arg, sizeof(size_t));
         write(file, x->args[i], size_arg);
-
-        // printf("%ld %s\n",size_arg,x->args[i]);
     }
 }
-
 Prog * read_Prog(int file){
     Prog * x = malloc(sizeof(Prog));
 

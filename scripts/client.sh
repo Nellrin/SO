@@ -26,6 +26,6 @@ sleep 1
 
 ./bin/client status
 
-sleep 50
+sleep 25
 ./bin/client status
 ./bin/client break

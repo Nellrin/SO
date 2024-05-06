@@ -6,4 +6,4 @@ echo "+────────────+"
 echo "|Orchestrator|"
 echo "+────────────+"
 echo ""
-./bin/orchestrator $server_input
+valgrind ./bin/orchestrator $server_input
