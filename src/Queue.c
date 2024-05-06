@@ -10,14 +10,16 @@
 
 #include "../include/Queue.h"
 
-Task* grabTask(TTL *queue) {
-    // Modificar el puntero original
-    Task* taskToExec = queue->task; // Nuevo valor del puntero
-    TTL *kill = queue;
-    queue = queue->next;
+Task* grabTask(TTL **queue) {
+    if (*queue == NULL) return NULL;
+
+    Task* taskToExec = (*queue)->task; // Novo valor do ponteiro
+    TTL *kill = *queue;
+    *queue = (*queue)->next;
     free(kill);
     return taskToExec;
 }
+
 
 static TTL* create_node(Task *data){
     TTL* newNode = malloc(sizeof(TTL));
@@ -27,7 +29,7 @@ static TTL* create_node(Task *data){
 }
 
 TTL* add_task(TTL* head, Task *data, char * order){
-    if(!strcmp(order,"FCFS")){
+    if(!strcasecmp(order,"FCFS")){
         TTL* newNode = create_node(data);
         if (head == NULL)
         return newNode;
@@ -40,7 +42,7 @@ TTL* add_task(TTL* head, Task *data, char * order){
         current->next = newNode;
         return head;
     }
-    if(!strcmp(order,"SJF")){
+    if(!strcasecmp(order,"SJF")){
         TTL* newNode = create_node(data);
         
         if (head == NULL || ((head->task->estimated_duration) > (data->estimated_duration))) {
@@ -50,7 +52,7 @@ TTL* add_task(TTL* head, Task *data, char * order){
         
         TTL* current = head;
 
-        while (current->next != NULL && ((head->task->estimated_duration) < (data->estimated_duration)))
+        while (current->next != NULL && ((current->next->task->estimated_duration) < (data->estimated_duration)))
         current = current->next;
 
         newNode->next = current->next;
@@ -106,11 +108,19 @@ Task * look_up_task(TTL* head, int id){
 }
 
 void print_queue(TTL* head){
+
+    printf("+───────+\n"
+           "| Queue |\n"
+           "+───────+\n");
     TTL* current = head;
-    while (current != NULL) {
-        printf("Task ID: %d\n", current->task->id);
+
+    while(current != NULL){
+        printf("|Task %2d|\n", current->task->id);
         current = current->next;
     }
+
+    printf("+───────+\n");
+
 }
 
 void free_queue(TTL* head){

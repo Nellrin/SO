@@ -25,17 +25,17 @@ int main(int argc, char* argv[]){
 	}
 
     int pid = getpid(),
-        in = open("server", O_WRONLY);
+        in = open("pipes/server", O_WRONLY);
 
 
     switch(argc) {
         case 2:
-            if(!strcmp(argv[1],"STATUS")){
+            if(!strcasecmp(argv[1],"status")){
                 char line_out[1024], line_in[1024], line[1024];
-                sprintf(line_out,"%d",pid);
+                sprintf(line_out,"pipes/%d",pid);
                 mkfifo(line_out, 0600);
 
-                sprintf(line_in,"%s%d",argv[1],pid);
+                sprintf(line_in,"%spipes/%d",argv[1],pid);
 
                 write(in,line_in,1024);
 
@@ -44,12 +44,12 @@ int main(int argc, char* argv[]){
                 write(1, line, strlen(line));
             }
 
-            if(!strcmp(argv[1],"BREAK"))
+            if(!strcasecmp(argv[1],"break"))
             write(in, argv[1], 1024);
 
             break;
         case 5:
-            if(!strcmp(argv[1],"EXECUTE") && 
+            if(!strcasecmp(argv[1],"execute") && 
                   ((!strcmp(argv[3],"-u") && amount_chars(argv[4],'|') == 0)
                 || (!strcmp(argv[3],"-p") && amount_chars(argv[4],'|') > 0))){
 
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]){
     
 
 
-                    char pipe_name[10];
-                    sprintf(pipe_name, "%d", pid);
+                    char pipe_name[20];
+                    sprintf(pipe_name, "pipes/%d", pid);
                     mkfifo(pipe_name, 0600);
                     char buff[1024];
                     sprintf(buff, "%d %s %s \"%s\"", pid, argv[3],argv[2], argv[4]);
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]){
                     if(read(out, &idTask, sizeof(int)) > 0)
                     if(idTask >= 0){
                         //printf("entrei no if\n");
-                        char ret[20];
+                        char ret[30];
                         sprintf(ret, "TASK %d Received\n", idTask);
                         //dup2(1,STDOUT_FILENO);
                         write(1, ret, sizeof(ret));
