@@ -38,8 +38,10 @@ static char ** string_to_array(char *str, int *amount) {
     char ** list = malloc(sizeof(char *) * (*amount));
 
 
-    char * new_str = strdup(str), 
+    char * new_str = strdup(str),
          * token;
+
+    char * new_str2 = new_str ;
 
     for(int i = 0; (token = strsep(&new_str, " \0")) != NULL && i < (*amount); i++)
     if(*token != '\0')
@@ -47,7 +49,7 @@ static char ** string_to_array(char *str, int *amount) {
 
 
 
-    free(new_str);
+    free(new_str2) ;
 
     if(token!=NULL)
     free(token);
@@ -83,7 +85,7 @@ Task * parse_string(int pid, char * pipe_flag, char * time, char *argv){
 
             i++;
         }
-    
+
     }
 
     Task * x = create_Task(pid,pipe_flag, amount_programs, path_to_programs, amount_args, args, time);

@@ -17,7 +17,7 @@
         TTL* queue;
         int active_tasks;
         int log;
-        
+
         long amount_forks;
         char * output_folder;
         int parallel_tasks;
@@ -37,7 +37,7 @@ Server * orchestrator_set_up(char * argv[]){
     Big_Guy->log = 0;
 
     char * filename = malloc(sizeof(char) * 1024);
-    sprintf(filename, "%s/done_tasks.bin", Big_Guy->output_folder);    
+    sprintf(filename, "%s/done_tasks.bin", Big_Guy->output_folder);
 
     if(fork() == 0){
         mkdir(Big_Guy->output_folder, 0700);
@@ -47,7 +47,7 @@ Server * orchestrator_set_up(char * argv[]){
     }
 
     int z = open(filename, O_RDWR, 0644), y = lseek(z, 0, SEEK_END);
-    
+
     if(y > 0){
         lseek(z, 0, SEEK_SET);
         read(z,&(Big_Guy->log),sizeof(int));
@@ -59,6 +59,7 @@ Server * orchestrator_set_up(char * argv[]){
     }
 
     close(z);
+    free (filename) ;
 
     return Big_Guy;
 }
@@ -76,16 +77,16 @@ void server_exec_task(Server * Big_Guy, Task ** task){
         new_status(Big_Guy->output_folder, (*task)->id, EXECUTING, (*task)->real_duration);
         long time = execute_Task((*task), Big_Guy->output_folder);
         new_status(Big_Guy->output_folder, (*task)->id, COMPLETED,time);
-        
-        
+
+
         char * done = malloc(sizeof(char) * 1024);
         snprintf(done,1024,"done");
-        
+
         int out = open("pipes/server",O_WRONLY);
         write(out,done,1024);
         close(out);
         free(done);
-        
+
         _exit(0);
     }
 
@@ -95,18 +96,20 @@ void server_exec_task(Server * Big_Guy, Task ** task){
 
 }
 void server_task_setter(Server * Big_Guy, Task ** task, char * buff){
-    
-    char * buff_cpy = strdup(buff), 
+
+    char * buff_cpy = strdup(buff),
          * token,
          * pipe_flag,
          * time,
          * args,
          * client_path = malloc(sizeof(char) * 1024);
-    
+
+    char * buff_cpy2 = buff_cpy ;
+
     int pid = 0,
         x = 0,
         fdout = 0;
-        
+
         for(int i = 0; i < 3 && (token = strsep(&buff_cpy, " ")) != NULL; i++){
             switch(i){
                 case 0:
@@ -143,7 +146,7 @@ void server_task_setter(Server * Big_Guy, Task ** task, char * buff){
 
 
         close(fdout);
-        free(buff_cpy);
+        free(buff_cpy2);
         free(pipe_flag);
         free(time);
         free(args);
@@ -156,13 +159,14 @@ void destroy_server(Server * Big_Guy){
     free_queue(Big_Guy->queue);
     free(Big_Guy->output_folder);
     free(Big_Guy->sched_policy);
+    //Big_Guy ->sched_policy = NULL ;
 
     free(Big_Guy);
 }
 void server_status(Server * Big_Guy, char * buff){
-    
+
     Big_Guy->amount_forks++;
-    
+
     if(fork() == 0){
         Task ** x = get_Tasks(Big_Guy->output_folder, Big_Guy->log);
         char * list = malloc(sizeof(char) * Big_Guy->log * 1024);
@@ -174,7 +178,7 @@ void server_status(Server * Big_Guy, char * buff){
                 case EXECUTING:
                     snprintf(list,(Big_Guy->log * 300),"Executing\n");
                     break;
-                
+
                 case SCHEDULED:
                     sprintf(list + strlen(list),"\nScheduled\n");
                     break;
@@ -182,7 +186,7 @@ void server_status(Server * Big_Guy, char * buff){
                     sprintf(list + strlen(list),"\nCompleted\n");
                     break;
                 }
-                
+
             for(int i = 0; i < Big_Guy->log; i++)
                 if(x[i]->status == status){
                     char * nova = print_Task_status(x[i]);
@@ -224,7 +228,7 @@ int main (int argc, char * argv []){
 
 
     Server * Big_Guy = orchestrator_set_up(argv);
-    Task * task = malloc(sizeof(Task));
+    Task * task = malloc(sizeof(Task)); // not freed
     char * buff = malloc(sizeof(char) * 1024);
     int fdin = open("pipes/server" , O_RDONLY), active = 1;
     ssize_t r;
@@ -249,7 +253,7 @@ int main (int argc, char * argv []){
 
             if(!strncasecmp(buff,"status", 6))
             server_status(Big_Guy,buff);
-            
+
 
             else{
                 server_task_setter(Big_Guy,&task,buff);

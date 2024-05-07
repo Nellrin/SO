@@ -33,11 +33,11 @@ Task * create_Task(int pid, char * pipe_flag, short amount_programs, char ** pat
     return x;
 }
 void set_ids(Task * x, int id, char * output_file){
-    
+
     char * filename = malloc(sizeof(char) * 128);
     snprintf(filename,128,"%s/done_tasks.bin",output_file);
     int done = open(filename, O_RDWR, 0644), y = id;;
-    
+
     x->id = id;
 
     lseek(done,0,SEEK_SET);
@@ -47,17 +47,18 @@ void set_ids(Task * x, int id, char * output_file){
     write_Task(x,done);
 
     close(done);
+    free (filename) ;
 }
 void destroy_Task(Task * x){
     for(int i = 0; i< x->amount_programs; i++)
     destroy_Prog(x->programs[i]);
-    
+
     free(x->programs);
     free(x->pipe_flag);
     free(x);
 }
 long execute_Task(Task * x, char * output_file){
-    
+
     struct timeval start_time, current_time, result;
     gettimeofday(&start_time, NULL);
 
@@ -89,7 +90,7 @@ Task **get_Tasks(char * output_folder, int amount){
 
     Task ** list_of_tasks = malloc(sizeof(Task *) * (amount));
     lseek(fd, 4, SEEK_SET);
-    
+
     for (int i = 0; i < (amount); i++)
     list_of_tasks[i] = read_Task(fd);
 
@@ -102,7 +103,7 @@ char * print_Task_status(Task *x){
     char * lista = malloc(sizeof(char) * 256 * 4);
     snprintf(lista,256*4,"%d %s", x->id, x->programs[0]->path_to_program);
 
-    for (int i = 1; i < x->amount_programs; ++i) 
+    for (int i = 1; i < x->amount_programs; ++i)
     sprintf(lista + strlen(lista)," | %s", x->programs[i]->path_to_program);
 
     if(x->status == COMPLETED){
@@ -141,7 +142,7 @@ void print_task_debug(Task * x){
     case SCHEDULED:
         printf("SCHEDULED\n%lds\n",x->estimated_duration);
         break;
-    
+
     default:
         break;
     }
@@ -184,10 +185,10 @@ Task * read_Task(int file){
 
     read(file, &(x->amount_programs), sizeof(short));
 
-    
+
     x->programs = malloc(sizeof(Prog) * x->amount_programs);
 
-    
+
     for(int i = 0; i < x->amount_programs; i++)
     x->programs[i] = read_Prog(file);
 
