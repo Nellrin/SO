@@ -29,16 +29,16 @@ void execute_single_Prog(Prog * x, int id, char * output_file){
     int output = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644), status;
 
     pid_t pid = fork();
-    
+
     if(pid == 0){
 
     dup2(output, STDERR_FILENO);
     dup2(output, STDOUT_FILENO);
         execvp(x->path_to_program, x->args);
-        perror(x->path_to_program); 
+        perror(x->path_to_program);
         _exit(0);
     }
-    
+
     else
     waitpid(pid, &status, 0);
 
@@ -54,6 +54,7 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
     dup2(output, STDERR_FILENO);
     dup2(output, STDOUT_FILENO);
     close(output);
+    free (filename) ;
 
 
 
@@ -73,7 +74,7 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
                 }
             }
 
-                
+
                 if(i < amount - 1){
                     close(pipes[i][0]);
 
@@ -88,16 +89,16 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
                 }
 
                 execvp(x[i]->path_to_program, x[i]->args);
-                perror(x[i]->path_to_program); 
+                perror(x[i]->path_to_program);
                 _exit(0);
         }
         else{
             if(i > 0)
             close(pipes[i-1][1]);
         }
-        
+
     }
-    
+
     for (int i = 0; i < amount - 1; i++){
         close(pipes[i][0]);
         close(pipes[i][1]);
@@ -105,10 +106,16 @@ void execute_multiple_Prog(Prog ** x, int amount, int id, char * output_file){
 }
 void destroy_Prog(Prog * x){
     free(x->path_to_program);
+    x->path_to_program = NULL ;
     for(int i = 0; i<x->amount_args; i++)
-    free(x->args[i]);
+    {
+        free(x->args[i]);
+        x->args[i] = NULL ;
+    }
     free(x->args);
+    x->args = NULL ;
     free(x);
+    x = NULL ;
 }
 void write_Prog(Prog * x, int file){
     size_t path_size = strlen(x->path_to_program) + 1;

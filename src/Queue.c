@@ -41,12 +41,12 @@ TTL* add_task(TTL* head, Task *data, char * order){
     }
     if(!strcasecmp(order,"SJF")){
         TTL* newNode = create_node(data);
-        
+
         if (head == NULL || ((head->task->estimated_duration) > (data->estimated_duration))) {
             newNode->next = head;
             return newNode;
         }
-        
+
         TTL* current = head;
 
         while (current->next != NULL && ((current->next->task->estimated_duration) < (data->estimated_duration)))
@@ -54,7 +54,7 @@ TTL* add_task(TTL* head, Task *data, char * order){
 
         newNode->next = current->next;
         current->next = newNode;
-        
+
         return head;
     }
 
@@ -67,7 +67,7 @@ TTL* remove_task(TTL* head, int id){
     if (head->task->id == id){
         TTL* temp = head;
         head = head->next;
-        
+
         destroy_Task(temp->task);
         free(temp);
 
@@ -82,7 +82,7 @@ TTL* remove_task(TTL* head, int id){
     if (current->next != NULL){
         TTL* temp = current->next;
         current->next = current->next->next;
-        
+
         destroy_Task(temp->task);
         free(temp);
     }
@@ -123,5 +123,6 @@ void free_queue(TTL* head){
         current = current->next;
         destroy_Task(temp->task);
         free(temp);
+        temp = NULL ;
     }
 }

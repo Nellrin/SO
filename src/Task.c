@@ -54,8 +54,11 @@ void destroy_Task(Task * x){
     destroy_Prog(x->programs[i]);
 
     free(x->programs);
+    x->programs = NULL ;
     free(x->pipe_flag);
+    x->pipe_flag = NULL ;
     free(x);
+    x = NULL ;
 }
 long execute_Task(Task * x, char * output_file){
 

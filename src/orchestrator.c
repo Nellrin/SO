@@ -157,11 +157,14 @@ void destroy_server(Server * Big_Guy){
     wait(NULL);
 
     free_queue(Big_Guy->queue);
+    Big_Guy->queue = NULL ;
     free(Big_Guy->output_folder);
+    Big_Guy->output_folder = NULL ;
     free(Big_Guy->sched_policy);
-    //Big_Guy ->sched_policy = NULL ;
+    Big_Guy ->sched_policy = NULL ;
 
     free(Big_Guy);
+    Big_Guy = NULL ;
 }
 void server_status(Server * Big_Guy, char * buff){
 
@@ -228,7 +231,8 @@ int main (int argc, char * argv []){
 
 
     Server * Big_Guy = orchestrator_set_up(argv);
-    Task * task = malloc(sizeof(Task)); // not freed
+    //Task * task = malloc(sizeof(Task)); // not freed
+    Task * task = NULL ;
     char * buff = malloc(sizeof(char) * 1024);
     int fdin = open("pipes/server" , O_RDONLY), active = 1;
     ssize_t r;

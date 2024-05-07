@@ -136,4 +136,5 @@ void new_status(char *folder, int task_id, Task_Status estado, long time){
     }
 
     close(fd);
+    free (filename) ;
 }
